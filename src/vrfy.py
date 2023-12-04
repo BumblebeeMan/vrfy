@@ -14,22 +14,24 @@ class vrfy:
         # find options
         for index in range(0, len(arguments)):
             if arguments[index] == self.RECURSIVE:
-                self.OPTION_RECURSIVE = True
-                print("Option: recursive - " + str(self.OPTION_RECURSIVE))                    
+                self.OPTION_RECURSIVE = True                   
         
         if len(arguments) >= 3 and self.os.path.isdir(arguments[1]) and self.os.path.isdir(arguments[2]):
             # only two path are given: verify paths
-            print("Verify paths:")
+            print("Validating directories:")
+            print("Master: " + str(arguments[1]))
+            print("Clone: " + str(arguments[1]))
             self.OPTION_RECURSIVE = True
             self.printResults(self.walker(arguments[1], arguments[2], self.verifyFiles))
         else:        
             for index in range(0, len(arguments)):
                 if arguments[index] == self.CREATE_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # create sums
+                    print("Creating checksums for files:")
                     self.printResults(self.walker(arguments[index + 1], arguments[index + 1], self.createSums))
                 if arguments[index] == self.VERIFY_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # verify sums
-                    print("Verify sums:")
+                    print("Verifying files against checksums:")
                     self.printResults(self.walker(arguments[index + 1], arguments[index + 1], self.verifySums))
     
     def printResults(self, res):
@@ -50,11 +52,10 @@ class vrfy:
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         result = True
         if len(filesMaster) > 0:
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print("Path : " + pathMaster)
+            print("" + str(result), end=" : ", flush=True)
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
-                    print("ERROR: File " + str(fileNameMaster) + "not found in clone!") 
+                    print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
                     checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
@@ -62,30 +63,33 @@ class vrfy:
                     if checksumClone == checksumMaster:
                         pass
                     else:
-                        print("Mismatch of file " + str(fileNameMaster) + " detected!")
+                        print("\nMismatch of file " + str(fileNameMaster) + " detected!", end=" : ", flush=True)
                         result = False
-            print("Sucessfully verified path: " + str(result))
+            if result == True:
+                print("PASS")
+            else:
+                print("FAILED!!!")
         return result  
 
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
         #create sums.csv, if directory contains files
         if len(filesMaster) > 0:
-            print("Path : " + pathMaster)
+            print("" + str(pathMaster), end=" : ", flush=True)
             f = open(pathMaster + "/sums.csv", "w")
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
             for file in filesMaster:
                 f.write(str(file) + ";" + str(self.calcChecksum(str(pathMaster) + "/" + str(file))) + "\n")
             f.close()
-            print("Created sums.csv for path: " + str(pathMaster))
+            print("DONE")
         return True
         
     def verifySums(self, pathMaster, filesMaster, pathClone, filesClone):
         if len(filesMaster) > 0:
+            print("" + str(pathMaster), end=" : ", flush=True)
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
-                
-            print("Path : " + pathMaster)
+        
             f = open(pathMaster + "/sums.csv", "r")
             sumsDict = dict() 
             for line in f.readlines():
@@ -99,11 +103,11 @@ class vrfy:
             additionalItemsInSumsCSV = [i for i in sumsDict.keys() if i not in filesMaster]
             if len(missingItemsInSumsCSV) != 0:
                 for item in missingItemsInSumsCSV:
-                    print(">>> File missing in sums.csv: " + item)
+                    print("\n>>> File missing in sums.csv: " + item, end="", flush=True)
                 resultVerify = False
             if len(additionalItemsInSumsCSV) != 0:
                 for item in additionalItemsInSumsCSV:
-                    print(">>> File missing in directory but in sums.csv: " + item)
+                    print("\n>>> File missing in directory but in sums.csv: " + item, end="", flush=True)
                 resultVerify = False
                 
             for file in filesMaster:
@@ -111,7 +115,7 @@ class vrfy:
                 checksumSaved = sumsDict[file]
                 if checksumCalc != checksumSaved:
                     resultVerify = False
-                    print(">>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc)
+                    print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end="", flush=True)
                 elif checksumCalc == checksumSaved:
                     pass
                 else:
@@ -119,7 +123,10 @@ class vrfy:
                     print("EXECUTION ERROR")
                     exit(1)
             
-            print("Sucessfully verified path: " + str(resultVerify))
+            if resultVerify == True:
+                print("PASS")
+            else:
+                print("Verified files at path: " + str(pathMaster) + " : FAILED!!!")
             return resultVerify
         return True
 
