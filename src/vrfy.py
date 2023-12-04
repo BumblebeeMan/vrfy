@@ -7,9 +7,7 @@ class vrfy:
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
     RECURSIVE = "-r"
-    VERBOSE = "-verbose"
     OPTION_RECURSIVE = False
-    OPTION_VERBOSE = None
     
     def __init__(self, arguments):
         # decode arguments
@@ -17,24 +15,12 @@ class vrfy:
         for index in range(0, len(arguments)):
             if arguments[index] == self.RECURSIVE:
                 self.OPTION_RECURSIVE = True
-                print("Option: recursive - " + str(self.OPTION_RECURSIVE))
-            if arguments[index] == self.VERBOSE:
-                if len(arguments) > (index + 1):
-                    if arguments[index + 1] == "None":
-                        self.OPTION_VERBOSE = "None"
-                    elif arguments[index + 1] == "MEDIUM":
-                        self.OPTION_VERBOSE = "MEDIUM"
-                    else:
-                        self.OPTION_VERBOSE = "ALL"
-                else:
-                    self.OPTION_VERBOSE = "ALL"
-                    
+                print("Option: recursive - " + str(self.OPTION_RECURSIVE))                    
         
         if len(arguments) >= 3 and self.os.path.isdir(arguments[1]) and self.os.path.isdir(arguments[2]):
             # only two path are given: verify paths
             print("Verify paths:")
             self.OPTION_RECURSIVE = True
-            self.OPTION_VERBOSE = "MEDIUM"
             self.printResults(self.walker(arguments[1], arguments[2], self.verifyFiles))
         else:        
             for index in range(0, len(arguments)):
@@ -55,16 +41,7 @@ class vrfy:
             print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("                   XXXXX     FAIL!!!!     XXXXX")
             print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            
-    def vprint(self, message, level = None):
-        if self.OPTION_VERBOSE == "ALL":
-            print(message)
-        elif self.OPTION_VERBOSE == "MEDIUM" and (level == "HIGH" or level == "MEDIUM"):
-            print(message)
-        else:
-            if level == "HIGH":
-                print(message)
- 
+             
     def calcChecksum(self, filePath):
         # execute command sha256sum for given file
         cmd = "sha256sum " + "'" + str(filePath) + "'"
@@ -77,21 +54,21 @@ class vrfy:
             print("Path : " + pathMaster)
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
-                    self.vprint("ERROR: File " + str(fileNameMaster) + "not found in clone!", "HIGH") 
+                    print("ERROR: File " + str(fileNameMaster) + "not found in clone!") 
                     result = False
                 else:
                     checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
                     checksumClone = self.calcChecksum(str(pathClone) + "/" + str(fileNameMaster))
                     if checksumClone == checksumMaster:
-                        self.vprint("File " + str(fileNameMaster) + ": PASS!")
+                        pass
                     else:
-                        self.vprint("File " + str(fileNameMaster) + ": +++FAILED+++", "MEDIUM")
+                        print("Mismatch of file " + str(fileNameMaster) + " detected!")
                         result = False
-            self.vprint("Sucessfully verified path: " + str(result), "MEDIUM")
+            print("Sucessfully verified path: " + str(result))
         return result  
 
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
-        #create sums.csv
+        #create sums.csv, if directory contains files
         if len(filesMaster) > 0:
             print("Path : " + pathMaster)
             f = open(pathMaster + "/sums.csv", "w")
@@ -100,7 +77,7 @@ class vrfy:
             for file in filesMaster:
                 f.write(str(file) + ";" + str(self.calcChecksum(str(pathMaster) + "/" + str(file))) + "\n")
             f.close()
-            self.vprint("Created sums.csv for path: " + str(pathMaster), "MEDIUM")
+            print("Created sums.csv for path: " + str(pathMaster))
         return True
         
     def verifySums(self, pathMaster, filesMaster, pathClone, filesClone):
@@ -136,13 +113,13 @@ class vrfy:
                     resultVerify = False
                     print(">>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc)
                 elif checksumCalc == checksumSaved:
-                    self.vprint(">>> File check: " + file + " :: PASS", "LOW")
+                    pass
                 else:
                     resultVerify = False
                     print("EXECUTION ERROR")
                     exit(1)
             
-            self.vprint("Sucessfully verified path: " + str(resultVerify), "MEDIUM")
+            print("Sucessfully verified path: " + str(resultVerify))
             return resultVerify
         return True
 
