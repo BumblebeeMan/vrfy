@@ -85,6 +85,12 @@ class vrfy:
         return True
         
     def verifySums(self, pathMaster, filesMaster, pathClone, filesClone):
+        """
+        Verifies the 
+
+        return: True -- Bool. 
+                False -- Bool. 
+        """
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
             if "sums.csv" in filesMaster:
@@ -153,6 +159,7 @@ class vrfy:
 
 import sys
 verify = vrfy(sys.argv)
+sys.exit(0)
 
   
             
