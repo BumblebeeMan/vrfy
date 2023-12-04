@@ -52,7 +52,7 @@ class vrfy:
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         result = True
         if len(filesMaster) > 0:
-            print("" + str(result), end=" : ", flush=True)
+            print("" + str(pathMaster), end=" : ", flush=True)
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
                     print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
