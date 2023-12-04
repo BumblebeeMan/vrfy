@@ -21,6 +21,12 @@ setup(
     url="https://github.com/BumblebeeMan/vrfy",
 
     #install_requires=["requests >= 2.30.0", "psutil >= 5.9.0"],
+    
+    entry_points={
+        'console_scripts': [
+            'vrfy = vrfy.vrfy:main',
+        ],
+    },
 
     python_requires=">=3.7",
 
