@@ -20,7 +20,7 @@ class vrfy:
             # only two path are given: verify paths
             print("Validating directories:")
             print("Master: " + str(arguments[1]))
-            print("Clone: " + str(arguments[1]))
+            print("Clone: " + str(arguments[2]))
             self.OPTION_RECURSIVE = True
             self.printResults(self.walker(arguments[1], arguments[2], self.verifyFiles))
         else:        
