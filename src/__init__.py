@@ -1,3 +1,3 @@
 #!/usr/bin/env python3
 
-from .vrfy import vrfy
+from src.vrfy import vrfy
