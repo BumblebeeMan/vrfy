@@ -167,46 +167,6 @@ class vrfy:
             # terminate, since paths are not pointing to valid directories
             return False
 
-    def walkFolder(pathMaster, pathClone):
-        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        print("Verifing directory: " + str(pathMaster))
-        if self.os.path.isdir(pathMaster) and self.os.path.isdir(pathClone):
-            filesM = [entryA for entryA in self.os.listdir(pathMaster) if not self.os.path.isdir(pathMaster + "/" + entryA)]
-            dictsM = [entryDir for entryDir in self.os.listdir(pathMaster) if self.os.path.isdir(pathMaster + "/" + entryDir)]
-            filesC = [entryB for entryB in self.os.listdir(pathClone) if not self.os.path.isdir(pathClone + "/" + entryB)]
-            
-            resultFileNo = True
-            if len(filesM) != len(filesC):
-                print("ERROR! Mismatch in file numbers!")
-                print("No. Master files: " + str(len(filesM)))
-                print("No. Clone files: " + str(len(filesC)))
-                resultFileNo = False
-                
-            if len(dictsM) > 0:
-                print("Additional directories found: " + str(dictsM))
-                
-            print("----------------------------------------------------------------------------------------------------")
-            
-            resultVerify = True
-            if len(filesM) > 0:
-                resultVerify = verifyFiles(pathMaster, filesM, pathClone, filesC)
-                if resultVerify == True:
-                    print(" +++ PASS +++")
-                else:
-                    print(" XXX FAIL XXX ")
-            
-            resultWalk = True
-            for nextFolder in dictsM:
-                resultWalk = walkFolder(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder) & resultWalk
-            
-            return resultVerify & resultWalk & resultFileNo
-            
-        else:
-            print("Folder does not exist: " + str(pathClone))
-            return False
-
-
 import sys
 verify = vrfy(sys.argv)
 
