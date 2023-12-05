@@ -8,6 +8,8 @@ class vrfy:
     VERIFY_CSV = "-v"
     RECURSIVE = "-r"
     OPTION_RECURSIVE = False
+    OPTION_CREATE_CSV = False
+    OPTION_VERIFY_CSV = False
     
     def __init__(self):
         pass
@@ -22,15 +24,26 @@ class vrfy:
         Returns:
             int:    0, when all execution steps resulted in PASS, else 1.
         """
-        # find independend options
+        # find options
+        directories = []
         for index in range(0, len(arguments)):
             if arguments[index] == self.RECURSIVE:
-                self.OPTION_RECURSIVE = True                   
+                self.OPTION_RECURSIVE = True 
+            if arguments[index] == self.CREATE_CSV:
+                self.OPTION_CREATE_CSV = True
+            if arguments[index] == self.VERIFY_CSV:
+                self.OPTION_VERIFY_CSV = True
+            if self.os.path.isdir(arguments[index]):
+                directories.append(arguments[index])
         
         executionResult = False
-        # only two paths are provided -> first: golden master / second: clone/copy to be verified
+        if len(arguments) == 0:
+            import os
+            directories.append(os.getcwd())
+            self.OPTION_VERIFY_CSV = True
+            self.OPTION_RECURSIVE = True
         if len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
-            # only two path are given: verify paths
+            # only two paths are provided -> first: golden master / second: clone/copy to be verified
             print("Validating directories:")
             print("Master: " + str(arguments[0]))
             print("Clone: " + str(arguments[1]))
@@ -38,17 +51,19 @@ class vrfy:
             executionResult = self.__walker__(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
         else:        
-            for index in range(0, len(arguments)):
-                if arguments[index] == self.CREATE_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
-                    # create sums
-                    print("Creating checksums for files:")
-                    executionResult = self.__walker__(arguments[index + 1], arguments[index + 1], self.createSums)
-                    self.__printResults__(executionResult)
-                if arguments[index] == self.VERIFY_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
-                    # verify sums
-                    print("Verifying files against checksums:")
-                    executionResult = self.__walker__(arguments[index + 1], arguments[index + 1], self.verifySums)
-                    self.__printResults__(executionResult)
+            if self.OPTION_CREATE_CSV == True and len(directories) == 1:
+                # create sums
+                print("Creating checksums for files:")
+                executionResult = self.__walker__(directories[0], directories[0], self.createSums)
+                self.__printResults__(executionResult)
+            elif self.OPTION_VERIFY_CSV == True and len(directories) == 1:
+                # verify sums
+                print("Verifying files against checksums:")
+                executionResult = self.__walker__(directories[0], directories[0], self.verifySums)
+                self.__printResults__(executionResult)
+            else:
+                print("No valid argument setting found!")
+                return 1
         if executionResult == True:
             return 0
         else:
