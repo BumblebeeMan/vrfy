@@ -9,7 +9,7 @@ with open("README.md", "r", encoding='utf-8') as file:
 setup(
     name = 'vrfy',
     version = '0.1.0',
-    description = 'Tool to verify the content of (copied) directories.',
+    description = 'Verify with VRFY: Ensure the integrity of your file copies, hash by hash!',
     long_description = long_description,
     long_description_content_type='text/markdown',
 
@@ -35,6 +35,21 @@ setup(
     classifiers=["Development Status :: 4 - Beta",
                  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
                  "Operating System :: OS Independent",
+                 "Environment :: Console",
+                 "Intended Audience :: End Users"
+                 "Intended Audience :: Developers",
+                 "Intended Audience :: System Administrators",
+                 "Intended Audience :: Information Technology (IT) Professionals"
+                 "Topic :: Utilities",
+                 "Topic :: Security",
+                 "Topic :: Security :: Cryptography",
+                 "Topic :: Security :: File Integrity",
+                 "Topic :: Security :: Utilities",
+                 "Topic :: System :: Filesystems",
+                 "Topic :: System :: Monitoring",
+                 "Topic :: System :: Archiving",
+                 "Topic :: System :: Archiving :: Backup",
+                 "Topic :: System :: Archiving :: Mirroring",
                  "Programming Language :: Python :: 3",
                  "Programming Language :: Python :: 3 :: Only",
                  "Programming Language :: Python :: 3.7",

@@ -43,13 +43,35 @@ class vrfy:
             print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("                   XXXXX     FAIL!!!!     XXXXX")
             print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-             
+            
     def calcChecksum(self, filePath):
+        """
+        Calculates and returns file hash for >>filePath<<.
+
+        Parameters:
+            filePath (str): Path and name of the file that shall get hashed. 
+        
+        Returns:
+            str: Hash digest.
+        """
         # execute command sha256sum for given file
         cmd = "sha256sum " + "'" + str(filePath) + "'"
         return self.subprocess.check_output(cmd, stderr=self.subprocess.STDOUT,shell=True).split()[0]
 
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
+        """
+        Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
+    
+        Parameters:
+            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison. .
+            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
+            pathClone (str): Path to clone directory whose files shall get verified against the master copy.
+            filesClone (List[str]): Names of all files that are included in the directory >>pathClone<<.
+        
+        Returns:
+            bool:   True, when contents of directory "pathMaster" are verified successfully against "pathClone".
+                    False, when at least one file mismatches.
+        """
         result = True
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
@@ -72,24 +94,46 @@ class vrfy:
         return result  
 
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
+        """
+        Creates file sums.csv with checksums for files [filesMaster] in >>pathMaster<<.
+        
+        Parameters:
+            pathMaster (str): Path to directory whose files shall get hashed and checksums stored in sums.csv.
+            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
+            pathClone (str): NOT USED! Included for compatibility reasons only.
+            filesClone (List[str]): NOT USED! Included for compatibility reasons only.
+        
+        Returns:
+            bool:   True, when file sums.csv is created successfully, else False.
+        """
         #create sums.csv, if directory contains files
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
-            f = open(pathMaster + "/sums.csv", "w")
-            if "sums.csv" in filesMaster:
-                filesMaster.remove("sums.csv")
-            for file in filesMaster:
-                f.write(str(file) + ";" + str(self.calcChecksum(str(pathMaster) + "/" + str(file))) + "\n")
-            f.close()
-            print("DONE")
+            try:
+                f = open(pathMaster + "/sums.csv", "w")
+                if "sums.csv" in filesMaster:
+                    filesMaster.remove("sums.csv")
+                for file in filesMaster:
+                    f.write(str(file) + ";" + str(self.calcChecksumLegacy(str(pathMaster) + "/" + str(file))) + "\n")
+                f.close()
+                print("PASS")
+            except:
+                print("FAILED!!!")
+                return False 
         return True
         
     def verifySums(self, pathMaster, filesMaster, pathClone, filesClone):
         """
-        Verifies the 
+        Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
-        return: True -- Bool. 
-                False -- Bool. 
+        Parameters:
+            pathMaster (str): Path to directory whose files shall get verified.
+            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
+            pathClone (str): NOT USED! Included for compatibility reasons only.
+            filesClone (List[str]): NOT USED! Included for compatibility reasons only.
+        
+        Returns:
+            bool:   True, when contents of directory are verified successfully against sums.csv, else False.
         """
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
@@ -137,6 +181,17 @@ class vrfy:
         return True
 
     def walker(self, pathMaster, pathClone, func):
+        """
+        Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
+
+        Parameters:
+            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison. .
+            pathClone (str): Path to clone directory whose files shall get verified against the master copy.
+            func (callable) -- Function that gets executed on the respective folder.
+        
+        Returns:
+            bool:   True, when all executions of >>func<< returned PASS, else False.
+        """
         # check if received strings are valid paths
         if self.os.path.isdir(pathMaster) and self.os.path.isdir(pathClone):
             # create lists of files and directories that are included in current path
