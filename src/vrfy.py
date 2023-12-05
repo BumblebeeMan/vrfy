@@ -22,19 +22,19 @@ class vrfy:
             print("Master: " + str(arguments[1]))
             print("Clone: " + str(arguments[2]))
             self.OPTION_RECURSIVE = True
-            self.printResults(self.walker(arguments[1], arguments[2], self.verifyFiles))
+            self.__printResults__(self.__walker__(arguments[1], arguments[2], self.verifyFiles))
         else:        
             for index in range(0, len(arguments)):
                 if arguments[index] == self.CREATE_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # create sums
                     print("Creating checksums for files:")
-                    self.printResults(self.walker(arguments[index + 1], arguments[index + 1], self.createSums))
+                    self.__printResults__(self.__walker__(arguments[index + 1], arguments[index + 1], self.createSums))
                 if arguments[index] == self.VERIFY_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # verify sums
                     print("Verifying files against checksums:")
-                    self.printResults(self.walker(arguments[index + 1], arguments[index + 1], self.verifySums))
+                    self.__printResults__(self.__walker__(arguments[index + 1], arguments[index + 1], self.verifySums))
     
-    def printResults(self, res):
+    def __printResults__(self, res):
         if res:
             print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("++++ PASS! ++++")
@@ -180,7 +180,7 @@ class vrfy:
             return resultVerify
         return True
 
-    def walker(self, pathMaster, pathClone, func):
+    def __walker__(self, pathMaster, pathClone, func):
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
@@ -205,16 +205,17 @@ class vrfy:
             # jump into child directories
             if self.OPTION_RECURSIVE == True:
                 for nextFolder in dictsM:
-                    resultVerify = self.walker(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder, func) & resultVerify
+                    resultVerify = self.__walker__(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder, func) & resultVerify
             
             return resultVerify
         else:
             # terminate, since paths are not pointing to valid directories
             return False
 
-import sys
-verify = vrfy(sys.argv)
-sys.exit(0)
+if __name__ == "__main__":
+    import sys
+    verify = vrfy(sys.argv)
+    sys.exit(0)
 
   
             
