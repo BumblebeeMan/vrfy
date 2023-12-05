@@ -246,10 +246,9 @@ class vrfy:
             # terminate, since paths are not pointing to valid directories
             return False
 
-if __name__ == "__main__":
-    import sys
-    verify = vrfy()
-    sys.exit(verify.parseArgumentsAndExecute(sys.argv[1:]))
+import sys
+verify = vrfy()
+sys.exit(verify.parseArgumentsAndExecute(sys.argv[1:]))
 
   
             
