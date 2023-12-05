@@ -9,42 +9,62 @@ class vrfy:
     RECURSIVE = "-r"
     OPTION_RECURSIVE = False
     
-    def __init__(self, arguments):
-        # decode arguments
-        # find options
+    def __init__(self):
+        pass
+        
+    def parseArgumentsAndExecute(self, arguments):
+        """
+        Decodes programm arguments and executes required methods.
+    
+        Parameters:
+            arguments (List[str]): List of arguments provided by user.
+        
+        Returns:
+            int:    0, when all execution steps resulted in PASS, else 1.
+        """
+        # find independend options
         for index in range(0, len(arguments)):
             if arguments[index] == self.RECURSIVE:
                 self.OPTION_RECURSIVE = True                   
         
-        if len(arguments) >= 3 and self.os.path.isdir(arguments[1]) and self.os.path.isdir(arguments[2]):
+        executionResult = False
+        # only two paths are provided -> first: golden master / second: clone/copy to be verified
+        if len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
             # only two path are given: verify paths
             print("Validating directories:")
-            print("Master: " + str(arguments[1]))
-            print("Clone: " + str(arguments[2]))
+            print("Master: " + str(arguments[0]))
+            print("Clone: " + str(arguments[1]))
             self.OPTION_RECURSIVE = True
-            self.__printResults__(self.__walker__(arguments[1], arguments[2], self.verifyFiles))
+            executionResult = self.__walker__(arguments[0], arguments[1], self.verifyFiles)
+            self.__printResults__(executionResult)
         else:        
             for index in range(0, len(arguments)):
                 if arguments[index] == self.CREATE_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # create sums
                     print("Creating checksums for files:")
-                    self.__printResults__(self.__walker__(arguments[index + 1], arguments[index + 1], self.createSums))
+                    executionResult = self.__walker__(arguments[index + 1], arguments[index + 1], self.createSums)
+                    self.__printResults__(executionResult)
                 if arguments[index] == self.VERIFY_CSV and self.os.path.isdir(arguments[index + 1]) and len(arguments) > (index + 1):
                     # verify sums
                     print("Verifying files against checksums:")
-                    self.__printResults__(self.__walker__(arguments[index + 1], arguments[index + 1], self.verifySums))
+                    executionResult = self.__walker__(arguments[index + 1], arguments[index + 1], self.verifySums)
+                    self.__printResults__(executionResult)
+        if executionResult == True:
+            return 0
+        else:
+            return 1
     
     def __printResults__(self, res):
         if res:
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("+++++++++++++++")
             print("++++ PASS! ++++")
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("+++++++++++++++")
         else:
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print("                   XXXXX     FAIL!!!!     XXXXX")
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("++++++++++++++++++++++++++++")
+            print("XXXXX     FAIL!!!!     XXXXX")
+            print("++++++++++++++++++++++++++++")
             
-    def calcChecksum(self, filePath):
+    def calcChecksumLegacy(self, filePath):
         """
         Calculates and returns file hash for >>filePath<<.
 
@@ -57,13 +77,24 @@ class vrfy:
         # execute command sha256sum for given file
         cmd = "sha256sum " + "'" + str(filePath) + "'"
         return self.subprocess.check_output(cmd, stderr=self.subprocess.STDOUT,shell=True).split()[0]
+        
+    def calcChecksum(self, filePath):
+        import hashlib
+        sha256_hash = hashlib.sha256()
+        with open(filePath, 'rb') as file:
+            while True:
+                block = file.read(8192)
+                if not block:
+                    break
+                sha256_hash.update(block)
+        return sha256_hash.hexdigest()
 
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
     
         Parameters:
-            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison. .
+            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison.
             filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
             pathClone (str): Path to clone directory whose files shall get verified against the master copy.
             filesClone (List[str]): Names of all files that are included in the directory >>pathClone<<.
@@ -80,8 +111,8 @@ class vrfy:
                     print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
-                    checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
-                    checksumClone = self.calcChecksum(str(pathClone) + "/" + str(fileNameMaster))
+                    checksumMaster = self.calcChecksumLegacy(str(pathMaster) + "/" + str(fileNameMaster))
+                    checksumClone = self.calcChecksumLegacy(str(pathClone) + "/" + str(fileNameMaster))
                     if checksumClone == checksumMaster:
                         pass
                     else:
@@ -144,6 +175,9 @@ class vrfy:
             sumsDict = dict() 
             for line in f.readlines():
                 entry = line.replace("\n","").split(";")
+                # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
+                if entry[1][:2] == "b'" and entry[1][-1] == "'":
+                    entry[1] = entry[1][2:-1]
                 sumsDict[entry[0]] = entry[1] 
             f.close()
             
@@ -214,8 +248,8 @@ class vrfy:
 
 if __name__ == "__main__":
     import sys
-    verify = vrfy(sys.argv)
-    sys.exit(0)
+    verify = vrfy()
+    sys.exit(verify.parseArgumentsAndExecute(sys.argv[1:]))
 
   
             
