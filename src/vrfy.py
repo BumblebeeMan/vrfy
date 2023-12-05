@@ -49,18 +49,18 @@ class vrfy:
             print("Master: " + str(arguments[0]))
             print("Clone: " + str(arguments[1]))
             self.OPTION_RECURSIVE = True
-            executionResult = self.__walker__(arguments[0], arguments[1], self.verifyFiles)
+            executionResult = self.walker(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
         else:        
             if self.OPTION_CREATE_CSV == True and len(directories) == 1:
                 # create sums
                 print("Creating checksums for files:")
-                executionResult = self.__walker__(directories[0], directories[0], self.createSums)
+                executionResult = self.walker(directories[0], directories[0], self.createSums)
                 self.__printResults__(executionResult)
             elif self.OPTION_VERIFY_CSV == True and len(directories) == 1:
                 # verify sums
                 print("Verifying files against checksums:")
-                executionResult = self.__walker__(directories[0], directories[0], self.verifySums)
+                executionResult = self.walker(directories[0], directories[0], self.verifySums)
                 self.__printResults__(executionResult)
             else:
                 print("No valid argument setting found!")
@@ -225,7 +225,7 @@ class vrfy:
             return resultVerify
         return True
 
-    def __walker__(self, pathMaster, pathClone, func):
+    def walker(self, pathMaster, pathClone, func):
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
@@ -250,7 +250,7 @@ class vrfy:
             # jump into child directories
             if self.OPTION_RECURSIVE == True:
                 for nextFolder in dictsM:
-                    resultVerify = self.__walker__(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder, func) & resultVerify
+                    resultVerify = self.walker(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder, func) & resultVerify
             
             return resultVerify
         else:
