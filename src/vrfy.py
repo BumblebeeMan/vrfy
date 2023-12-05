@@ -38,6 +38,7 @@ class vrfy:
         
         executionResult = False
         if len(arguments) == 0:
+            # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
@@ -78,8 +79,8 @@ class vrfy:
             print("++++++++++++++++++++++++++++")
             print("XXXXX     FAIL!!!!     XXXXX")
             print("++++++++++++++++++++++++++++")
-            
-    def calcChecksumLegacy(self, filePath):
+        
+    def calcChecksum(self, filePath):
         """
         Calculates and returns file hash for >>filePath<<.
 
@@ -89,11 +90,6 @@ class vrfy:
         Returns:
             str: Hash digest.
         """
-        # execute command sha256sum for given file
-        cmd = "sha256sum " + "'" + str(filePath) + "'"
-        return self.subprocess.check_output(cmd, stderr=self.subprocess.STDOUT,shell=True).split()[0]
-        
-    def calcChecksum(self, filePath):
         import hashlib
         sha256_hash = hashlib.sha256()
         with open(filePath, 'rb') as file:
@@ -126,8 +122,8 @@ class vrfy:
                     print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
-                    checksumMaster = self.calcChecksumLegacy(str(pathMaster) + "/" + str(fileNameMaster))
-                    checksumClone = self.calcChecksumLegacy(str(pathClone) + "/" + str(fileNameMaster))
+                    checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
+                    checksumClone = self.calcChecksum(str(pathClone) + "/" + str(fileNameMaster))
                     if checksumClone == checksumMaster:
                         pass
                     else:
@@ -160,7 +156,7 @@ class vrfy:
                 if "sums.csv" in filesMaster:
                     filesMaster.remove("sums.csv")
                 for file in filesMaster:
-                    f.write(str(file) + ";" + str(self.calcChecksumLegacy(str(pathMaster) + "/" + str(file))) + "\n")
+                    f.write(str(file) + ";" + str(self.calcChecksum(str(pathMaster) + "/" + str(file))) + "\n")
                 f.close()
                 print("PASS")
             except:
