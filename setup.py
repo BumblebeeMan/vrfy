@@ -36,15 +36,6 @@ setup(
                  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
                  "Operating System :: OS Independent",
                  "Environment :: Console",
-                 "Intended Audience :: End Users"
-                 "Intended Audience :: Developers",
-                 "Intended Audience :: System Administrators",
-                 "Intended Audience :: Information Technology (IT) Professionals"
-                 "Topic :: Utilities",
-                 "Topic :: Security",
-                 "Topic :: Security :: Cryptography",
-                 "Topic :: Security :: File Integrity",
-                 "Topic :: Security :: Utilities",
                  "Topic :: System :: Filesystems",
                  "Topic :: System :: Monitoring",
                  "Topic :: System :: Archiving",
