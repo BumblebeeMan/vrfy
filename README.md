@@ -10,12 +10,18 @@ With a single, easy command, you can:
 3. Verify that your data is unchanged using the checksum file.
 
 ## Installation
-Download the latest release from github and run the appropriate command:
-### DNF (Fedora, RHEL, CentOS):
+### PIP: 
+- Install **vrfy** using pip:
+```bash
+pip install vrfy --user
+```
+### System package:
+- Download the latest release from github and run the appropriate command:
+#### DNF (Fedora, RHEL, CentOS):
 ```bash
 sudo dnf install vrfy-0.1.0-1.noarch.rpm
 ```
-### Zypper (openSUSE):
+#### Zypper (openSUSE):
 ```bash
 sudo zypper install vrfy-0.1.0-1.noarch.rpm
 ```
