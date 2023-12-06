@@ -11,12 +11,14 @@ With a single, easy command, you can:
 
 ## Installation
 ### PIP: 
-- Install **vrfy** using pip:
+Install **vrfy** using pip:
 ```bash
 pip install vrfy --user
 ```
+
+
 ### System package:
-- Download the latest release from github and run the appropriate command:
+Download the latest release from github and run the appropriate command:
 #### DNF (Fedora, RHEL, CentOS):
 ```bash
 sudo dnf install vrfy-0.1.0-1.noarch.rpm
