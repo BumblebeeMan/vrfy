@@ -5,8 +5,8 @@ When beginning to explore cloud storage (or other methods of remotely storing fi
 Those concerns are mitigated by using a small console application called **vrfy**. **vrfy** handles the heavy lifting and verifies the integrity of your backups for you!
 With a single, easy command, you can:
 
-1. Verify that copies are identical (i.e., all files are included in both locations, and not even a single bit is changed).
-2. Create and store a checksum file beside your data. This file can be backed up and used for later verification.
+1. Verify that copies are identical (i.e., all files are included in both locations, and -by using sha256 hash checksums- that not even a single bit was changed).
+2. Create and store a file with sha256 hash checksums beside your data. This file can be backed up with your data and used for verification later.
 3. Verify that your data is unchanged using the checksum file.
 
 ## Installation
