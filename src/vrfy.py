@@ -3,10 +3,13 @@ class vrfy:
     import os
     import subprocess
     
+    VERSION_STR = "0.1.1"
+    
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
     RECURSIVE = "-r"
+    VERSION = "-version"
     OPTION_RECURSIVE = False
     OPTION_CREATE_CSV = False
     OPTION_VERIFY_CSV = False
@@ -35,6 +38,8 @@ class vrfy:
                 self.OPTION_VERIFY_CSV = True
             if self.os.path.isdir(arguments[index]):
                 directories.append(arguments[index])
+            if arguments[index] == self.VERSION:
+                print("vrfy version: " + VERSION_STR)
         
         executionResult = False
         if len(arguments) == 0:
