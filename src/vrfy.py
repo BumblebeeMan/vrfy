@@ -92,12 +92,16 @@ class vrfy:
         """
         import hashlib
         sha256_hash = hashlib.sha256()
-        with open(filePath, 'rb') as file:
-            while True:
-                block = file.read(8192)
-                if not block:
-                    break
-                sha256_hash.update(block)
+        try:
+            with open(filePath, 'rb') as file:
+                while True:
+                    block = file.read(8192)
+                    if not block:
+                        break
+                    sha256_hash.update(block)
+        except:
+            print("ERROR: Unable to calculate SHA256 hash."
+            return "ERROR"
         return sha256_hash.hexdigest()
 
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
@@ -182,15 +186,19 @@ class vrfy:
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
         
-            f = open(pathMaster + "/sums.csv", "r")
-            sumsDict = dict() 
-            for line in f.readlines():
-                entry = line.replace("\n","").split(";")
-                # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
-                if entry[1][:2] == "b'" and entry[1][-1] == "'":
-                    entry[1] = entry[1][2:-1]
-                sumsDict[entry[0]] = entry[1] 
-            f.close()
+            try:
+                f = open(pathMaster + "/sums.csv", "r")
+                sumsDict = dict() 
+                for line in f.readlines():
+                    entry = line.replace("\n","").split(";")
+                    # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
+                    if entry[1][:2] == "b'" and entry[1][-1] == "'":
+                        entry[1] = entry[1][2:-1]
+                    sumsDict[entry[0]] = entry[1] 
+                f.close()
+            except:
+                print("\n>>> ERROR: No sums.csv found!")
+                return False
             
             resultVerify = True
             
