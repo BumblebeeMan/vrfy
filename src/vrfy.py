@@ -105,7 +105,7 @@ class vrfy:
                         break
                     sha256_hash.update(block)
         except:
-            print("ERROR: Unable to calculate SHA256 hash."
+            print("ERROR: Unable to calculate SHA256 hash.")
             return "ERROR"
         return sha256_hash.hexdigest()
 
