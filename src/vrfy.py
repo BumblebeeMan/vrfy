@@ -39,7 +39,7 @@ class vrfy:
             if self.os.path.isdir(arguments[index]):
                 directories.append(arguments[index])
             if arguments[index] == self.VERSION:
-                print("vrfy version: " + VERSION_STR)
+                print("vrfy version: " + self.VERSION_STR)
         
         executionResult = False
         if len(arguments) == 0:
