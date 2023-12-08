@@ -21,11 +21,11 @@ pip install vrfy --user
 Download the latest release from github and run the appropriate command:
 #### DNF (Fedora, RHEL, CentOS):
 ```bash
-sudo dnf install vrfy-0.1.0-1.noarch.rpm
+sudo dnf install vrfy-0.1.1-1.noarch.rpm
 ```
 #### Zypper (openSUSE):
 ```bash
-sudo zypper install vrfy-0.1.0-1.noarch.rpm
+sudo zypper install vrfy-0.1.1-1.noarch.rpm
 ```
  
 ## Usage
