@@ -15,18 +15,6 @@ Install **vrfy** using pip:
 ```bash
 pip install vrfy --user
 ```
-
-
-### System package:
-Download the latest release from github and run the appropriate command:
-#### DNF (Fedora, RHEL, CentOS):
-```bash
-sudo dnf install vrfy-0.1.1-1.noarch.rpm
-```
-#### Zypper (openSUSE):
-```bash
-sudo zypper install vrfy-0.1.1-1.noarch.rpm
-```
  
 ## Usage
 ### 1. Verifing that two directories are identical
