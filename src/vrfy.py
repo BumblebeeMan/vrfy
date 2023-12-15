@@ -3,17 +3,19 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.1.x"
+    VERSION_STR = "0.2.x"
     
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
     RECURSIVE = "-r"
     VERSION = "-version"
+    PRINT = "-p"
     OPTION_RECURSIVE = False
     OPTION_CREATE_CSV = False
     OPTION_VERIFY_CSV = False
     OPTION_VERIFY_VERSION = False
+    OPTION_PRINT = False
     
     HASH_ERROR = "ERROR"
     
@@ -43,6 +45,8 @@ class vrfy:
                 directories.append(arguments[index])
             if arguments[index] == self.VERSION:
                 self.OPTION_VERIFY_VERSION = True
+            if arguments[index] == self.PRINT:
+                self.OPTION_PRINT = True
         
         executionResult = False
         if len(arguments) == 0:
@@ -59,6 +63,11 @@ class vrfy:
             self.OPTION_RECURSIVE = True
             executionResult = self.walker(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
+        elif len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1])):
+            if self.os.path.isfile(arguments[0]):
+                print(self.calcChecksum(arguments[0]))
+            else:
+                print(self.calcChecksum(arguments[1]))
         else:        
             if self.OPTION_CREATE_CSV == True and len(directories) == 1:
                 # create sums
