@@ -55,7 +55,12 @@ class vrfy:
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
-        if len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
+        if (len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1]))) or (len(arguments) == 1 and self.os.path.isfile(arguments[0])):
+            if self.os.path.isfile(arguments[0]):
+                print(self.calcChecksum(arguments[0]))
+            else:
+                print(self.calcChecksum(arguments[1]))
+        elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
             print("Validating directories:")
             print("Master: " + str(arguments[0]))
@@ -63,11 +68,6 @@ class vrfy:
             self.OPTION_RECURSIVE = True
             executionResult = self.walker(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
-        elif len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1])):
-            if self.os.path.isfile(arguments[0]):
-                print(self.calcChecksum(arguments[0]))
-            else:
-                print(self.calcChecksum(arguments[1]))
         else:        
             if self.OPTION_CREATE_CSV == True and len(directories) == 1:
                 # create sums
