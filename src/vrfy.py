@@ -11,11 +11,15 @@ class vrfy:
     RECURSIVE = "-r"
     VERSION = "-version"
     PRINT = "-p"
+    FILE = "-f"
+    CHECKSUM = "-cs"
     OPTION_RECURSIVE = False
     OPTION_CREATE_CSV = False
     OPTION_VERIFY_CSV = False
     OPTION_VERIFY_VERSION = False
     OPTION_PRINT = False
+    OPTION_FILE = -1
+    OPTION_CHECKSUM = -1
     
     HASH_ERROR = "ERROR"
     
@@ -47,19 +51,26 @@ class vrfy:
                 self.OPTION_VERIFY_VERSION = True
             if arguments[index] == self.PRINT:
                 self.OPTION_PRINT = True
+            if arguments[index] == self.CHECKSUM:
+                self.OPTION_CHECKSUM = index + 1
+            if arguments[index] == self.FILE:
+                self.OPTION_FILE = index + 1
         
         executionResult = False
+        # cli option: vrfy
         if len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
+        # cli option: vrfy -p <<file>>
         if (len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1]))) or (len(arguments) == 1 and self.os.path.isfile(arguments[0])):
             if self.os.path.isfile(arguments[0]):
                 print(self.calcChecksum(arguments[0]))
             else:
                 print(self.calcChecksum(arguments[1]))
+        # cli option: vrfy <<directory>> <<directory>>
         elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
             print("Validating directories:")
@@ -68,22 +79,33 @@ class vrfy:
             self.OPTION_RECURSIVE = True
             executionResult = self.walker(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
-        else:        
-            if self.OPTION_CREATE_CSV == True and len(directories) == 1:
-                # create sums
-                print("Creating checksums for files:")
-                executionResult = self.walker(directories[0], directories[0], self.createSums)
-                self.__printResults__(executionResult)
-            elif self.OPTION_VERIFY_CSV == True and len(directories) == 1:
-                # verify sums
-                print("Verifying files against checksums:")
-                executionResult = self.walker(directories[0], directories[0], self.verifySums)
-                self.__printResults__(executionResult)
-            elif self.OPTION_VERIFY_VERSION == True:
-                print("vrfy version: " + str(self.VERSION_STR))
-            else:
-                print("No valid argument setting found!")
-                return 1
+        # cli option: vrfy -f <<file>> -cs <<CHECKSUM>>
+        elif len(arguments) == 4 and (self.OPTION_CHECKSUM > -1 and self.OPTION_CHECKSUM <= 4) and (self.OPTION_FILE > -1 and self.OPTION_FILE <= 4):
+            if self.os.path.isfile(arguments[self.OPTION_FILE]):
+                calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
+                if calcChecksum == arguments[self.OPTION_CHECKSUM]:
+                    executionResult = True
+                else:
+                    executionResult = False
+            self.__printResults__(executionResult)
+        # cli option: vrfy -c <<directory>>
+        elif self.OPTION_CREATE_CSV == True and len(directories) == 1:
+            # create sums
+            print("Creating checksums for files:")
+            executionResult = self.walker(directories[0], directories[0], self.createSums)
+            self.__printResults__(executionResult)
+        # cli option: vrfy -v <<directory>>
+        elif self.OPTION_VERIFY_CSV == True and len(directories) == 1:
+            # verify sums
+            print("Verifying files against checksums:")
+            executionResult = self.walker(directories[0], directories[0], self.verifySums)
+            self.__printResults__(executionResult)
+        # cli option: vrfy -version
+        elif self.OPTION_VERIFY_VERSION == True:
+            print("vrfy version: " + str(self.VERSION_STR))
+        else:
+            print("No valid argument setting found!")
+            return 1
         if executionResult == True:
             return 0
         else:

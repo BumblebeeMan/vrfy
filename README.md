@@ -40,7 +40,20 @@ Using **-r** (recursive) all sub-directories are verified as well:
 ```bash
 vrfy -r -v /path/of/data
 ```
-Verifying the current working directory and all its sub-directories can be done when no parameters are provided.:
+Verifying the current working directory and all its sub-directories can be done when no parameters are provided:
 ```bash
 vrfy
+```
+Verifying file against an expected checksum:
+```bash
+vrfy -f /path/of/file/filename -cs expectedChecksum
+```
+### 4. Other CLI options
+Display version of vrfy:
+```bash
+vrfy -version
+```
+Display checksum for given file:
+```bash
+vrfy -p /path/of/file/filename
 ```
