@@ -3,7 +3,7 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.2.x"
+    VERSION_STR = "0.2.0"
     
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
@@ -113,13 +113,9 @@ class vrfy:
     
     def __printResults__(self, res):
         if res:
-            print("+++++++++++++++")
-            print("++++ PASS! ++++")
-            print("+++++++++++++++")
+            print("Overall: PASS")
         else:
-            print("++++++++++++++++++++++++++++")
-            print("XXXXX     FAIL!!!!     XXXXX")
-            print("++++++++++++++++++++++++++++")
+            print("Overall: FAIL")
         
     def calcChecksum(self, filePath):
         """
