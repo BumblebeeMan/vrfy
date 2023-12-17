@@ -8,13 +8,13 @@ with open("README.md", "r", encoding='utf-8') as file:
 
 setup(
     name = 'vrfy',
-    version = '0.2.0',
+    version = '0.2.1',
     description = 'Verify with VRFY: Ensure the integrity of your file copies, hash by hash!',
     long_description = long_description,
     long_description_content_type='text/markdown',
 
     py_modules = ["vrfy"],
-    package_dir = {'': 'src'},
+    package_dir = {'': 'vrfy'},
 
     author="BumblebeeMan (Dennis Koerner)", 
     author_email="dennis@bumblebeeman.dev",     
@@ -24,7 +24,7 @@ setup(
     
     entry_points={
         'console_scripts': [
-            'vrfy = vrfy.vrfy:main',
+            'vrfy = vrfy:main',
         ],
     },
 

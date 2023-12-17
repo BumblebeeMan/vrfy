@@ -3,7 +3,7 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.2.0"
+    VERSION_STR = "0.2.1"
     
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
