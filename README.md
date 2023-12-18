@@ -40,7 +40,7 @@ Using **-r** (recursive) all sub-directories are verified as well:
 ```bash
 vrfy -r -v /path/of/data
 ```
-Verifying the current working directory and all its sub-directories can be done when no parameters are provided:
+Verifying the current working directory and all its sub-directories:
 ```bash
 vrfy
 ```
