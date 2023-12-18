@@ -3,8 +3,9 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.2.1"
+    VERSION_STR = "0.3.0"
     
+    #options
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
@@ -13,6 +14,12 @@ class vrfy:
     PRINT = "-p"
     FILE = "-f"
     CHECKSUM = "-cs"
+    MERGE = "-merge"
+    MASTER_DIR = "-m"
+    CLONE_DIR = "-c"
+    MERGE_MASTER_TO_CLONE = "-MergeMasterToClone"
+    MERGE_CLONE_TO_MASTER = "-MergeCloneToMaster"
+    MERGE_MIRRORED = "-MergeMirrored"
     OPTION_RECURSIVE = False
     OPTION_CREATE_CSV = False
     OPTION_VERIFY_CSV = False
@@ -20,6 +27,9 @@ class vrfy:
     OPTION_PRINT = False
     OPTION_FILE = -1
     OPTION_CHECKSUM = -1
+    OPTION_MASTER_DIR = -1
+    OPTION_CLONE_DIR = -1
+    OPTION_MERGE = ""
     
     HASH_ERROR = "ERROR"
     
@@ -55,17 +65,26 @@ class vrfy:
                 self.OPTION_CHECKSUM = index + 1
             if arguments[index] == self.FILE:
                 self.OPTION_FILE = index + 1
+            if arguments[index] == self.MASTER_DIR:
+                self.OPTION_MASTER_DIR = index + 1
+            if arguments[index] == self.CLONE_DIR:
+                self.OPTION_CLONE_DIR = index + 1
+            if arguments[index] == self.MERGE_MASTER_TO_CLONE or arguments[index] == self.MERGE_CLONE_TO_MASTER or arguments[index] == self.MERGE_MIRRORED:
+                self.OPTION_MERGE = arguments[index]
         
         executionResult = False
+        # cli option: vrfy -version
+        if self.OPTION_VERIFY_VERSION == True:
+            print("vrfy version: " + str(self.VERSION_STR))
         # cli option: vrfy
-        if len(arguments) == 0:
+        elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
         # cli option: vrfy -p <<file>>
-        if (len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1]))) or (len(arguments) == 1 and self.os.path.isfile(arguments[0])):
+        elif (len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1]))) or (len(arguments) == 1 and self.os.path.isfile(arguments[0])):
             if self.os.path.isfile(arguments[0]):
                 print(self.calcChecksum(arguments[0]))
             else:
@@ -100,9 +119,13 @@ class vrfy:
             print("Verifying files against checksums:")
             executionResult = self.walker(directories[0], directories[0], self.verifySums)
             self.__printResults__(executionResult)
-        # cli option: vrfy -version
-        elif self.OPTION_VERIFY_VERSION == True:
-            print("vrfy version: " + str(self.VERSION_STR))
+        # cli option: vrfy -m <<directory>> -c <<directory>> -<<mergeOption>>
+        elif len(arguments) == 5 and (self.OPTION_MASTER_DIR > -1 and self.OPTION_MASTER_DIR <= 5) and (self.OPTION_CLONE_DIR > -1 and self.OPTION_CLONE_DIR <= 5):
+            print("Merging directories:")
+            print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
+            print("Clone: " + str(arguments[elf.OPTION_CLONE_DIR]))
+            executionResult = self.walker(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], self.verifyMergeFiles)
+            self.__printResults__(executionResult)
         else:
             print("No valid argument setting found!")
             return 1
@@ -141,6 +164,64 @@ class vrfy:
             return self.HASH_ERROR
         return sha256_hash.hexdigest()
 
+    def verifyMergeFiles(self, pathMaster, filesMaster, pathClone, filesClone):
+        """
+        
+        """
+        result = True
+        import shutil
+        if self.OPTION_MERGE == self.MERGE_CLONE_TO_MASTER: #MERGE_MASTER_TO_CLONE:
+            if len(filesClone) > 0:
+                missingFiles = [i for i in filesClone if i not in filesMaster]
+                for file in missingFiles:
+                    print(">>> Copying file to master: " + (pathClone + "/" + file), end=" : ", flush=True)
+                    try:
+                        shutil.copy2(pathClone + "/" + file, pathMaster + "/" + file, follow_symlinks=True)
+                    except:
+                        print("FAIL")
+                        result = False
+                    else: 
+                        print("PASS")
+                result = self.verifyFiles(pathMaster, filesMaster, pathClone, filesClone) & result
+        elif self.OPTION_MERGE == self.MERGE_MASTER_TO_CLONE:
+            if len(filesMaster) > 0:
+                missingFiles = [i for i in filesMaster if i not in filesClone]
+                for file in missingFiles:
+                    print(">>> Copying file to clone: " + (pathMaster + "/" + file), end=" : ", flush=True)
+                    try:
+                        shutil.copy2(pathMaster + "/" + file, pathClone + "/" + file, follow_symlinks=True)
+                    except:
+                        print("FAIL")
+                        result = False
+                    else: 
+                        print("PASS")
+                result = self.verifyFiles(pathClone, filesClone, pathMaster, filesMaster)  & result
+        elif self.OPTION_MERGE == self.MERGE_MIRRORED:
+            print("Merge mirrored")
+            missingFilesInClone = [i for i in filesMaster if i not in filesClone]
+            missingFilesInMaster = [i for i in filesClone if i not in filesMaster]
+            for file in missingFilesInClone:
+                print(">>> Copying file to clone: " + (pathMaster + "/" + file), end=" : ", flush=True)
+                try:
+                    shutil.copy2(pathMaster + "/" + file, pathClone + "/" + file, follow_symlinks=True)
+                except:
+                    print("FAIL")
+                    result = False
+                else: 
+                    print("PASS")
+            for file in missingFilesInMaster:
+                print(">>> Copying file to master: " + (pathClone + "/" + file), end=" : ", flush=True)
+                try:
+                    shutil.copy2(pathClone + "/" + file, pathMaster + "/" + file, follow_symlinks=True)
+                except:
+                    print("FAIL")
+                    result = False
+                else: 
+                    print("PASS")  
+        else:
+            pass
+        return result  
+        
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
