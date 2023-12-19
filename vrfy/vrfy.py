@@ -334,20 +334,20 @@ class vrfy:
             additionalItemsInSumsCSV = [i for i in sumsDict.keys() if i not in filesMaster]
             if len(missingItemsInSumsCSV) != 0:
                 for item in missingItemsInSumsCSV:
-                    print("\n>>> File missing in sums.csv: " + item, end="", flush=True)
+                    print("\n>>> File missing in sums.csv: " + item, end=" ", flush=True)
                 resultVerify = False
             if len(additionalItemsInSumsCSV) != 0:
                 for item in additionalItemsInSumsCSV:
-                    print("\n>>> File missing in directory but in sums.csv: " + item, end="", flush=True)
+                    print("\n>>> File missing in directory but in sums.csv: " + item, end=" ", flush=True)
                 resultVerify = False
                 
             # iterate through all files and compare their checksum with those stored in sums.csv
-            for file in filesMaster:
+            for file in sumsDict.keys():
                 checksumCalc = str(self.calcChecksum(str(pathMaster) + "/" + str(file)))
                 checksumSaved = sumsDict[file]
                 if checksumCalc != checksumSaved:
                     resultVerify = False
-                    print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end="", flush=True)
+                    print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end=" ", flush=True)
                 elif checksumCalc == checksumSaved:
                     pass
                 else:
