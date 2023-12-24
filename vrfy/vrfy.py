@@ -160,7 +160,7 @@ class vrfy:
             print("" + str(pathMaster), end=" : ", flush=True)
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
-                    print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
+                    print("\nERROR: File " + str(fileNameMaster) + " not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
                     checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
