@@ -3,7 +3,7 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.3.0"
+    VERSION_STR = "0.2.2"
     
     #options
     GLOBAL_VERBOSITY = None
@@ -241,7 +241,7 @@ class vrfy:
             print("" + str(pathMaster), end=" : ", flush=True)
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
-                    print("\nERROR: File " + str(fileNameMaster) + "not found in clone!", end=" : ", flush=True) 
+                    print("\nERROR: File " + str(fileNameMaster) + " not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
                     checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
