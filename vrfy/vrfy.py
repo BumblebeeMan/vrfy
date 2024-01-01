@@ -3,7 +3,7 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.2.2"
+    VERSION_STR = "0.3.0"
     
     #options
     GLOBAL_VERBOSITY = None
@@ -119,13 +119,6 @@ class vrfy:
             print("Verifying files against checksums:")
             executionResult = self.walker(directories[0], directories[0], self.verifySums)
             self.__printResults__(executionResult)
-        # cli option: vrfy -m <<directory>> -c <<directory>> -<<mergeOption>>
-        elif len(arguments) == 5 and (self.OPTION_MASTER_DIR > -1 and self.OPTION_MASTER_DIR <= 5) and (self.OPTION_CLONE_DIR > -1 and self.OPTION_CLONE_DIR <= 5):
-            print("Merging directories:")
-            print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
-            print("Clone: " + str(arguments[elf.OPTION_CLONE_DIR]))
-            executionResult = self.walker(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], self.verifyMergeFiles)
-            self.__printResults__(executionResult)
         else:
             print("No valid argument setting found!")
             return 1
@@ -160,68 +153,10 @@ class vrfy:
                         break
                     sha256_hash.update(block)
         except:
-            print("ERROR: Unable to calculate SHA256 hash.")
+            #print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
         return sha256_hash.hexdigest()
-
-    def verifyMergeFiles(self, pathMaster, filesMaster, pathClone, filesClone):
-        """
-        
-        """
-        result = True
-        import shutil
-        if self.OPTION_MERGE == self.MERGE_CLONE_TO_MASTER: #MERGE_MASTER_TO_CLONE:
-            if len(filesClone) > 0:
-                missingFiles = [i for i in filesClone if i not in filesMaster]
-                for file in missingFiles:
-                    print(">>> Copying file to master: " + (pathClone + "/" + file), end=" : ", flush=True)
-                    try:
-                        shutil.copy2(pathClone + "/" + file, pathMaster + "/" + file, follow_symlinks=True)
-                    except:
-                        print("FAIL")
-                        result = False
-                    else: 
-                        print("PASS")
-                result = self.verifyFiles(pathMaster, filesMaster, pathClone, filesClone) & result
-        elif self.OPTION_MERGE == self.MERGE_MASTER_TO_CLONE:
-            if len(filesMaster) > 0:
-                missingFiles = [i for i in filesMaster if i not in filesClone]
-                for file in missingFiles:
-                    print(">>> Copying file to clone: " + (pathMaster + "/" + file), end=" : ", flush=True)
-                    try:
-                        shutil.copy2(pathMaster + "/" + file, pathClone + "/" + file, follow_symlinks=True)
-                    except:
-                        print("FAIL")
-                        result = False
-                    else: 
-                        print("PASS")
-                result = self.verifyFiles(pathClone, filesClone, pathMaster, filesMaster)  & result
-        elif self.OPTION_MERGE == self.MERGE_MIRRORED:
-            print("Merge mirrored")
-            missingFilesInClone = [i for i in filesMaster if i not in filesClone]
-            missingFilesInMaster = [i for i in filesClone if i not in filesMaster]
-            for file in missingFilesInClone:
-                print(">>> Copying file to clone: " + (pathMaster + "/" + file), end=" : ", flush=True)
-                try:
-                    shutil.copy2(pathMaster + "/" + file, pathClone + "/" + file, follow_symlinks=True)
-                except:
-                    print("FAIL")
-                    result = False
-                else: 
-                    print("PASS")
-            for file in missingFilesInMaster:
-                print(">>> Copying file to master: " + (pathClone + "/" + file), end=" : ", flush=True)
-                try:
-                    shutil.copy2(pathClone + "/" + file, pathMaster + "/" + file, follow_symlinks=True)
-                except:
-                    print("FAIL")
-                    result = False
-                else: 
-                    print("PASS")  
-        else:
-            pass
-        return result  
-        
+      
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
@@ -239,9 +174,11 @@ class vrfy:
         result = True
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
+            checksumErrors = []
+            missingItemsInPathClone = [i for i in filesMaster if i not in filesClone]
+            additionalItemsInPathClone = [i for i in filesClone if i not in filesMaster]
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
-                    print("\nERROR: File " + str(fileNameMaster) + " not found in clone!", end=" : ", flush=True) 
                     result = False
                 else:
                     checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
@@ -249,12 +186,19 @@ class vrfy:
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         pass
                     else:
-                        print("\nMismatch of file " + str(fileNameMaster) + " detected!", end=" : ", flush=True)
+                        checksumErrors.append(str(fileNameMaster))
                         result = False
             if result == True:
                 print("PASS")
             else:
                 print("FAILED!!!")
+            # print results
+            for file in checksumErrors:
+                print("[MISMATCH] " + str(file))
+            for file in missingItemsInPathClone:
+                print("[+] " + str(file))
+            for file in additionalItemsInPathClone:
+                print("[-] " + str(file))
         return result  
 
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
@@ -330,15 +274,12 @@ class vrfy:
             resultVerify = True
             
             # verify that all files in directory are included in sums.csv,and vice versa
+            checksumErrors = []
             missingItemsInSumsCSV = [i for i in filesMaster if i not in sumsDict.keys()]
             additionalItemsInSumsCSV = [i for i in sumsDict.keys() if i not in filesMaster]
             if len(missingItemsInSumsCSV) != 0:
-                for item in missingItemsInSumsCSV:
-                    print("\n>>> File missing in sums.csv: " + item, end=" ", flush=True)
                 resultVerify = False
             if len(additionalItemsInSumsCSV) != 0:
-                for item in additionalItemsInSumsCSV:
-                    print("\n>>> File missing in directory but in sums.csv: " + item, end=" ", flush=True)
                 resultVerify = False
                 
             # iterate through all files and compare their checksum with those stored in sums.csv
@@ -346,8 +287,9 @@ class vrfy:
                 checksumCalc = str(self.calcChecksum(str(pathMaster) + "/" + str(file)))
                 checksumSaved = sumsDict[file]
                 if checksumCalc != checksumSaved:
+                    checksumErrors.append(file)
                     resultVerify = False
-                    print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end=" ", flush=True)
+                    #print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end=" ", flush=True)
                 elif checksumCalc == checksumSaved:
                     pass
                 else:
@@ -362,6 +304,15 @@ class vrfy:
                 print("PASS")
             else:
                 print("FAILED!!!")
+                
+            # print results
+            for file in checksumErrors:
+                print("[MISMATCH] " + str(file))
+            for file in missingItemsInSumsCSV:
+                print("[+] " + str(file))
+            for file in additionalItemsInSumsCSV:
+                print("[-] " + str(file))
+                
             return resultVerify
         
         # return with True, in case no files are needed to be verifed
