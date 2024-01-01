@@ -48,16 +48,7 @@ Verifying file against an expected checksum:
 ```bash
 vrfy -f /path/of/file/filename -cs expectedChecksum
 ```
-### 4. Merge directories and verify contents afterwards
-Merging master directory into clone directory (or vice versa) and verify that directory contents are identical:
-```bash
-vrfy -m /path/of/master -c /path/of/clone [MERGE_OPTION]
-```
-Merge options:
-- **-MergeMasterToClone**: Copy files from clone that are missing in master into master. 
-- **-MergeCloneToMaster**: Copy files from master that are missing in clone into clone.
-- **-MergeMirrored**: Above options combined. Master and clone are mirrored copies afterwards.
-### 5. Other CLI options
+### 4. Other CLI options
 Display version of vrfy:
 ```bash
 vrfy -version
