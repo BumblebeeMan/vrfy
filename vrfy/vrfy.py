@@ -255,11 +255,11 @@ class vrfy:
         if len(filesMaster) > 0:
             print("" + str(pathMaster), end=" : ", flush=True)
             try:
-                f = open(pathMaster + "/sums.csv", "w")
+                f = open(self.os.path.join(pathMaster, "sums.csv"), "w")
                 if "sums.csv" in filesMaster:
                     filesMaster.remove("sums.csv")
                 for file in filesMaster:
-                    hash_digest = str(self.calcChecksum(str(pathMaster) + "/" + str(file)))
+                    hash_digest = str(self.calcChecksum(self.os.path.join(pathMaster, file)))
                     if hash_digest != self.HASH_ERROR: 
                         f.write(str(file) + ";" + str(hash_digest) + "\n")
                     else:
@@ -293,7 +293,7 @@ class vrfy:
             
             # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
             try:
-                f = open(pathMaster + "/sums.csv", "r")
+                f = open(self.os.path.join(pathMaster, "sums.csv"), "r")
                 sumsDict = dict() 
                 for line in f.readlines():
                     entry = line.replace("\n","").split(";")
@@ -320,7 +320,7 @@ class vrfy:
                 
             # iterate through all files and compare their checksum with those stored in sums.csv
             for file in sumsDict.keys():
-                checksumCalc = str(self.calcChecksum(str(pathMaster) + "/" + str(file)))
+                checksumCalc = str(self.calcChecksum(self.os.path.join(pathMaster, file)))
                 checksumSaved = sumsDict[file]
                 if checksumCalc != checksumSaved:
                     checksumErrors.append(file)
@@ -369,9 +369,9 @@ class vrfy:
         # check if received strings are valid paths
         if self.os.path.isdir(pathMaster) and self.os.path.isdir(pathClone):
             # create lists of files and directories that are included in current path
-            filesM = [entryA for entryA in self.os.listdir(pathMaster) if not self.os.path.isdir(pathMaster + "/" + entryA)]
-            filesC = [entryB for entryB in self.os.listdir(pathClone) if not self.os.path.isdir(pathClone + "/" + entryB)]
-            dictsM = [entryDir for entryDir in self.os.listdir(pathMaster) if self.os.path.isdir(pathMaster + "/" + entryDir)]
+            filesM = [entryA for entryA in self.os.listdir(pathMaster) if not self.os.path.isdir(self.os.path.join(pathMaster, entryA))]
+            filesC = [entryB for entryB in self.os.listdir(pathClone) if not self.os.path.isdir(self.os.path.join(pathClone, entryB))]
+            dictsM = [entryDir for entryDir in self.os.listdir(pathMaster) if self.os.path.isdir(self.os.path.join(pathMaster, entryDir))]
             
             # execute requested operation
             resultVerify = func(pathMaster, filesM, pathClone, filesC)  
@@ -379,7 +379,7 @@ class vrfy:
             # jump into child directories, if recursive operation is requested
             if self.OPTION_RECURSIVE == True:
                 for nextFolder in dictsM:
-                    resultVerify = self.walker(pathMaster + "/" + nextFolder, pathClone + "/" + nextFolder, func) & resultVerify
+                    resultVerify = self.walker(self.os.path.join(pathMaster, nextFolder), self.os.path.join(pathClone, nextFolder), func) & resultVerify
             
             return resultVerify
         else:
