@@ -62,13 +62,25 @@ class vrfy:
             if arguments[index] == self.PRINT:
                 self.OPTION_PRINT = True
             if arguments[index] == self.CHECKSUM:
-                self.OPTION_CHECKSUM = index + 1
+                if (len(arguments)-2) <= index + 1: # index + 1 shall be second to last or earlier
+                    self.OPTION_CHECKSUM = index + 1
+                else:
+                    print("Error: Option '" + str(self.CHECKSUM) + "' provided, but '" + str(self.CHECKSUM)+ "' is not followed by checksum to test.")
             if arguments[index] == self.FILE:
-                self.OPTION_FILE = index + 1
+                if self.os.path.isfile(arguments[index + 1]):
+                    self.OPTION_FILE = index + 1
+                else:
+                    print("Error: Option '" + str(self.FILE) + "' provided, but '" + str(arguments[index + 1]) + "' is no file.")
             if arguments[index] == self.MASTER_DIR:
-                self.OPTION_MASTER_DIR = index + 1
+                if self.os.path.isdir(arguments[index + 1]):
+                    self.OPTION_MASTER_DIR = index + 1
+                else:
+                    print("Error: Option '" + str(self.MASTER_DIR) + "' provided, but '" + str(arguments[index + 1]) + "' is no directory.")
             if arguments[index] == self.CLONE_DIR:
-                self.OPTION_CLONE_DIR = index + 1
+                if self.os.path.isdir(arguments[index + 1]):
+                    self.OPTION_CLONE_DIR = index + 1
+                else:
+                    print("Error: Option '" + str(self.CLONE_DIR) + "' provided, but '" + str(arguments[index + 1]) + "' is no directory.")
             if arguments[index] == self.MERGE_MASTER_TO_CLONE or arguments[index] == self.MERGE_CLONE_TO_MASTER or arguments[index] == self.MERGE_MIRRORED:
                 self.OPTION_MERGE = arguments[index]
         
@@ -77,20 +89,14 @@ class vrfy:
         if self.OPTION_VERIFY_VERSION == True:
             print("vrfy version: " + str(self.VERSION_STR))
         # cli option: vrfy
-        elif len(arguments) == 0:
+        if len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
-        # cli option: vrfy -p <<file>>
-        elif (len(arguments) == 2 and self.OPTION_PRINT == True and (self.os.path.isfile(arguments[0]) or self.os.path.isfile(arguments[1]))) or (len(arguments) == 1 and self.os.path.isfile(arguments[0])):
-            if self.os.path.isfile(arguments[0]):
-                print(self.calcChecksum(arguments[0]))
-            else:
-                print(self.calcChecksum(arguments[1]))
         # cli option: vrfy <<directory>> <<directory>>
-        elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
+        elif (len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1])):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
             print("Validating directories:")
             print("Master: " + str(arguments[0]))
@@ -98,27 +104,45 @@ class vrfy:
             self.OPTION_RECURSIVE = True
             executionResult = self.walker(arguments[0], arguments[1], self.verifyFiles)
             self.__printResults__(executionResult)
-        # cli option: vrfy -f <<file>> -cs <<CHECKSUM>>
-        elif len(arguments) == 4 and (self.OPTION_CHECKSUM > -1 and self.OPTION_CHECKSUM <= 4) and (self.OPTION_FILE > -1 and self.OPTION_FILE <= 4):
-            if self.os.path.isfile(arguments[self.OPTION_FILE]):
-                calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
+        # cli option: vrfy -m <<directory>> -c <<directory>>
+        elif self.OPTION_MASTER_DIR >= 0 and self.OPTION_MASTER_DIR <= len(arguments) - 1 and self.OPTION_CLONE_DIR >= 0 and self.OPTION_CLONE_DIR <= len(arguments) - 1:
+            print("Validating directories:")
+            print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
+            print("Clone: " + str(arguments[self.OPTION_CLONE_DIR]))
+            self.OPTION_RECURSIVE = True
+            executionResult = self.walker(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], self.verifyFiles)
+            self.__printResults__(executionResult)
+        # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>> 
+        elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
+            calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
+            if self.OPTION_PRINT == True:
+                name, extension = self.os.path.splitext(self.os.path.basename(arguments[self.OPTION_FILE]))
+                print(str(calcChecksum) + "  " + str(name) + str(extension))
+                executionResult = True
+            if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
                 if calcChecksum == arguments[self.OPTION_CHECKSUM]:
                     executionResult = True
                 else:
                     executionResult = False
-            self.__printResults__(executionResult)
+                self.__printResults__(executionResult)
         # cli option: vrfy -c <<directory>>
-        elif self.OPTION_CREATE_CSV == True and len(directories) == 1:
-            # create sums
-            print("Creating checksums for files:")
-            executionResult = self.walker(directories[0], directories[0], self.createSums)
-            self.__printResults__(executionResult)
+        elif self.OPTION_CREATE_CSV == True:
+            if len(directories) == 1:
+                # create sums
+                print("Creating checksums for files:")
+                executionResult = self.walker(directories[0], directories[0], self.createSums)
+                self.__printResults__(executionResult)
+            else:
+                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(len(directories)) + "' directories are given (required: 1).")
         # cli option: vrfy -v <<directory>>
-        elif self.OPTION_VERIFY_CSV == True and len(directories) == 1:
-            # verify sums
-            print("Verifying files against checksums:")
-            executionResult = self.walker(directories[0], directories[0], self.verifySums)
-            self.__printResults__(executionResult)
+        elif self.OPTION_VERIFY_CSV == True:
+            if len(directories) == 1:
+                # verify sums
+                print("Verifying files against checksums:")
+                executionResult = self.walker(directories[0], directories[0], self.verifySums)
+                self.__printResults__(executionResult)
+            else:
+                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(len(directories)) + "' directories are given (required: 1).")
         else:
             print("No valid argument setting found!")
             return 1
@@ -181,13 +205,25 @@ class vrfy:
                 if fileNameMaster not in filesClone:
                     result = False
                 else:
-                    checksumMaster = self.calcChecksum(str(pathMaster) + "/" + str(fileNameMaster))
-                    checksumClone = self.calcChecksum(str(pathClone) + "/" + str(fileNameMaster))
+                    masterFilePath = self.os.path.join(pathMaster, fileNameMaster)
+                    cloneFilePath = self.os.path.join(pathClone, fileNameMaster)
+                    checksumMaster = self.calcChecksum(masterFilePath)
+                    checksumClone = self.calcChecksum(cloneFilePath)
+                    if self.OPTION_PRINT == True:
+                        print("\nFile: " + fileNameMaster)
+                        print("Master: " + checksumMaster)
+                        print("Clone: " + checksumClone)
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
+                        if self.OPTION_PRINT == True:
+                            print("Check: PASS")
                         pass
                     else:
+                        if self.OPTION_PRINT == True:
+                            print("Check: FAIL")
                         checksumErrors.append(str(fileNameMaster))
                         result = False
+            if self.OPTION_PRINT == True:
+                print("" + str(pathMaster), end=" : ", flush=True)
             if result == True:
                 print("PASS")
             else:

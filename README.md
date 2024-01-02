@@ -55,5 +55,5 @@ vrfy -version
 ```
 Display checksum for given file:
 ```bash
-vrfy -p /path/of/file/filename
+vrfy -p -f /path/of/file/filename
 ```
