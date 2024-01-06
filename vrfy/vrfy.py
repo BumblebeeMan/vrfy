@@ -32,6 +32,8 @@ class vrfy:
     OPTION_MERGE = ""
     
     HASH_ERROR = "ERROR"
+    LINE_BREAK = "-----------------------------------------"
+    CHAPTER_BREAK = "========================================="
     
     def __init__(self):
         pass
@@ -98,7 +100,7 @@ class vrfy:
         # cli option: vrfy <<directory>> <<directory>>
         elif (len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1])):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
-            print("Validating directories:")
+            print("Verifying directories:")
             print("Master: " + str(arguments[0]))
             print("Clone: " + str(arguments[1]))
             self.OPTION_RECURSIVE = True
@@ -106,7 +108,7 @@ class vrfy:
             self.__printResults__(executionResult)
         # cli option: vrfy -m <<directory>> -c <<directory>>
         elif self.OPTION_MASTER_DIR >= 0 and self.OPTION_MASTER_DIR <= len(arguments) - 1 and self.OPTION_CLONE_DIR >= 0 and self.OPTION_CLONE_DIR <= len(arguments) - 1:
-            print("Validating directories:")
+            print("Verifying directories:")
             print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
             print("Clone: " + str(arguments[self.OPTION_CLONE_DIR]))
             self.OPTION_RECURSIVE = True
@@ -197,10 +199,18 @@ class vrfy:
         """
         result = True
         if len(filesMaster) > 0:
-            print("" + str(pathMaster), end=" : ", flush=True)
+            if self.OPTION_PRINT == True:
+                print(str(pathMaster) + " : ")
+            else:
+                print(str(pathMaster), end=" : ", flush=True)
             checksumErrors = []
             missingItemsInPathClone = [i for i in filesMaster if i not in filesClone]
             additionalItemsInPathClone = [i for i in filesClone if i not in filesMaster]
+            if len(missingItemsInPathClone) != 0:
+                result = False
+            if len(additionalItemsInPathClone) != 0:
+                result = False
+                
             for fileNameMaster in filesMaster:
                 if fileNameMaster not in filesClone:
                     result = False
@@ -210,13 +220,13 @@ class vrfy:
                     checksumMaster = self.calcChecksum(masterFilePath)
                     checksumClone = self.calcChecksum(cloneFilePath)
                     if self.OPTION_PRINT == True:
-                        print("\nFile: " + fileNameMaster)
+                        print("File: " + fileNameMaster)
                         print("Master: " + checksumMaster)
                         print("Clone: " + checksumClone)
+                        print(self.LINE_BREAK)
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         if self.OPTION_PRINT == True:
                             print("Check: PASS")
-                        pass
                     else:
                         if self.OPTION_PRINT == True:
                             print("Check: FAIL")
@@ -235,6 +245,8 @@ class vrfy:
                 print("[+] " + str(file))
             for file in additionalItemsInPathClone:
                 print("[-] " + str(file))
+            if self.OPTION_PRINT == True:
+                print(self.CHAPTER_BREAK)
         return result  
 
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
@@ -286,7 +298,10 @@ class vrfy:
         """
         if len(filesMaster) > 0:
             # print current working directory without line ending
-            print("" + str(pathMaster), end=" : ", flush=True)
+            if self.OPTION_PRINT == True:
+                print(str(pathMaster) + " : ")
+            else:
+                print(str(pathMaster), end=" : ", flush=True)
             
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
@@ -322,6 +337,11 @@ class vrfy:
             for file in sumsDict.keys():
                 checksumCalc = str(self.calcChecksum(self.os.path.join(pathMaster, file)))
                 checksumSaved = sumsDict[file]
+                if self.OPTION_PRINT == True:
+                    print("File: " + file)
+                    print("Master: " + checksumCalc)
+                    print("Saved: " + checksumSaved)
+                    print(self.LINE_BREAK)
                 if checksumCalc != checksumSaved:
                     checksumErrors.append(file)
                     resultVerify = False
@@ -336,6 +356,8 @@ class vrfy:
                     sys.exit(1)
             
             # append result to printed working directory
+            if self.OPTION_PRINT == True:
+                print("" + str(pathMaster), end=" : ", flush=True)
             if resultVerify == True:
                 print("PASS")
             else:
@@ -348,6 +370,9 @@ class vrfy:
                 print("[+] " + str(file))
             for file in additionalItemsInSumsCSV:
                 print("[-] " + str(file))
+            
+            if self.OPTION_PRINT == True:
+                print(self.CHAPTER_BREAK)
                 
             return resultVerify
         
