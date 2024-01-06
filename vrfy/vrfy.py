@@ -315,7 +315,7 @@ class vrfy:
         if extension == ".sha256sum":
             return self.readSha256SumFile(path, filename)
         elif filename == "sums.csv":
-            return self.readSumsCsvFile(filePathName)
+            return self.readSumsCsvFile(path)
         else:
             return dict()
     
