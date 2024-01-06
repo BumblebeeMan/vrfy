@@ -26,6 +26,10 @@ or
 ```bash
 vrfy -m /path/of/master -c /path/of/clone -r
 ```
+or (checksums are printed to console)
+```bash
+vrfy -m /path/of/master -c /path/of/clone -r -p
+```
 ### 2. Storing checksums for future verification
 Creating a file that lists checksums for all files within a directory:
 ```bash
@@ -40,9 +44,13 @@ Verifying that all files within a directory haven't been changed (i.e., their ch
 ```bash
 vrfy -v /path/of/data
 ```
-Using **-r** (recursive) all sub-directories are verified as well:
+Using option **-r** (recursive) all sub-directories are verified as well:
 ```bash
 vrfy -r -v /path/of/data
+```
+Using option **-p** (print) all checksums are printed to console for further inspection:
+```bash
+vrfy -p -r -v /path/of/data
 ```
 Verifying the current working directory and all its sub-directories:
 ```bash
