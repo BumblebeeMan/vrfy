@@ -35,9 +35,11 @@ class vrfy:
     LINE_BREAK = "-----------------------------------------"
     CHAPTER_BREAK = "========================================="
     
+    
     def __init__(self):
         pass
-        
+    
+    
     def parseArgumentsAndExecute(self, arguments):
         """
         Decodes programm arguments and executes required methods.
@@ -168,7 +170,8 @@ class vrfy:
             print("Overall: PASS")
         else:
             print("Overall: FAIL")
-        
+    
+    
     def calcChecksum(self, filePath):
         """
         Calculates and returns file hash for >>filePath<<.
@@ -192,7 +195,8 @@ class vrfy:
             #print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
         return sha256_hash.hexdigest()
-      
+   
+   
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
@@ -271,6 +275,7 @@ class vrfy:
                 print(self.CHAPTER_BREAK)
         return result  
 
+
     def createSums(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Creates file sums.csv with checksums for files [filesMaster] in >>pathMaster<<.
@@ -309,6 +314,7 @@ class vrfy:
                 return False 
         return result
 
+
     def getChecksumsFromFile(self, filePathName):
         path, filename = self.os.path.split(filePathName)
         name, extension = self.os.path.splitext(self.os.path.basename(filePathName))
@@ -319,7 +325,18 @@ class vrfy:
         else:
             return dict()
     
+    
     def readSha256SumFile(self, filePath, fileName):
+        """
+        Reads and decodes *.sha256sum-files and returns a filename / hash digest dictionary.
+
+        Parameters:
+            filePath (str): Path to directory where *.sha256sum-file is located.
+            fileName (str): Name of *.sha256sum-file with file extension.
+        
+        Returns:
+            dict:   dict[filename] = hash digest.
+        """
         sumsDict = dict()
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         try:
@@ -331,10 +348,19 @@ class vrfy:
         except:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             print("\n>>> ERROR: No *.sha256sum-file found!")
-        return sumsDict
+        return sumsDict 
     
     
     def readSumsCsvFile(self, filePath):
+        """
+        Reads and decodes sums.csv-files and returns a filename / hash digest dictionary.
+
+        Parameters:
+            filePath (str): Path to directory where sums.csv-file is located.
+        
+        Returns:
+            dict:   dict[filename] = hash digest.
+        """
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         sumsDict = dict()
         try:
@@ -415,8 +441,7 @@ class vrfy:
                     print("EXECUTION ERROR")
                     import sys
                     sys.exit(1)
-            
-            
+             
             if self.OPTION_PRINT == True:
                 print("" + str(pathMaster), end=" : ", flush=True)
             # append result to printed working directory
@@ -439,6 +464,7 @@ class vrfy:
         
         # return with True, in case no files needed to be verifed
         return True
+
 
     def walker(self, pathMaster, pathClone, func):
         """
@@ -471,6 +497,7 @@ class vrfy:
         else:
             # terminate, since paths are not pointing to valid directories
             return False
+
 
 def main():
     import sys
