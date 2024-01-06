@@ -298,7 +298,23 @@ class vrfy:
                 print("FAILED!!!")
                 return False 
         return result
-        
+
+
+    def readSha256SumFile(self, filePath, fileName):
+        sumsDict = dict()
+        # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
+        try:
+            f = open(self.os.path.join(filePath, fileName), "r")
+            for line in f.readlines():
+                entry = line.replace("\n","").split("  ")
+                sumsDict[entry[1]] = entry[0] 
+            f.close()
+        except:
+            # except file errors, and close verification with FAIL (i.e. "False" result)
+            print("\n>>> ERROR: No *.sha256sum-file found!")
+        return sumsDict
+    
+    
     def readSumsCsvFile(self, filePath):
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         sumsDict = dict()
