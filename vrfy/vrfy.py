@@ -122,7 +122,17 @@ class vrfy:
                 print(str(calcChecksum) + "  " + str(name) + str(extension))
                 executionResult = True
             if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
-                if calcChecksum == arguments[self.OPTION_CHECKSUM]:
+                givenChecksum = arguments[self.OPTION_CHECKSUM]
+                if self.os.path.isfile(arguments[self.OPTION_CHECKSUM]):
+                    try:
+                        path, filename = self.os.path.split(arguments[self.OPTION_FILE])
+                        sumsDict = self.getChecksumsFromFile(arguments[self.OPTION_CHECKSUM])
+                        givenChecksum = sumsDict[filename]
+                    except:
+                        givenChecksum = ""
+                        executionResult = False
+                        print("Error: Option '" + str(self.CHECKSUM) + "' provided, but no checksum found in file" + str(arguments[self.OPTION_CHECKSUM]) + ".")
+                if calcChecksum == givenChecksum:
                     executionResult = True
                 else:
                     executionResult = False
@@ -299,7 +309,16 @@ class vrfy:
                 return False 
         return result
 
-
+    def getChecksumsFromFile(self, filePathName):
+        path, filename = self.os.path.split(filePathName)
+        name, extension = self.os.path.splitext(self.os.path.basename(filePathName))
+        if extension == ".sha256sum":
+            return self.readSha256SumFile(path, filename)
+        elif filename == "sums.csv":
+            return self.readSumsCsvFile(filePathName)
+        else:
+            return dict()
+    
     def readSha256SumFile(self, filePath, fileName):
         sumsDict = dict()
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
