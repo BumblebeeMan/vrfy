@@ -198,12 +198,15 @@ class vrfy:
                     False, when at least one file mismatches.
         """
         result = True
+        # start file verification, when files are included in directory
         if len(filesMaster) > 0:
+            # print current working directory
             if self.OPTION_PRINT == True:
                 print(str(pathMaster) + " : ")
             else:
                 print(str(pathMaster), end=" : ", flush=True)
-            checksumErrors = []
+                
+            # search for missing or additional files in master and clone, and trigger error condition
             missingItemsInPathClone = [i for i in filesMaster if i not in filesClone]
             additionalItemsInPathClone = [i for i in filesClone if i not in filesMaster]
             if len(missingItemsInPathClone) != 0:
@@ -211,34 +214,43 @@ class vrfy:
             if len(additionalItemsInPathClone) != 0:
                 result = False
                 
+            # iterate through all files of master directory and verify their checksums to those of the clone directory 
+            checksumErrors = []
             for fileNameMaster in filesMaster:
+                # master file is not included on clone directory -> trigger error condition
                 if fileNameMaster not in filesClone:
                     result = False
                 else:
+                    # calculate checksums for master and clone file
                     masterFilePath = self.os.path.join(pathMaster, fileNameMaster)
                     cloneFilePath = self.os.path.join(pathClone, fileNameMaster)
                     checksumMaster = self.calcChecksum(masterFilePath)
                     checksumClone = self.calcChecksum(cloneFilePath)
+                    # print checksums if requested by user
                     if self.OPTION_PRINT == True:
                         print("File: " + fileNameMaster)
                         print("Master: " + checksumMaster)
                         print("Clone: " + checksumClone)
                         print(self.LINE_BREAK)
+                    # verify that both match and both are NOT "HASH_ERROR"
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         if self.OPTION_PRINT == True:
                             print("Check: PASS")
                     else:
+                        # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         if self.OPTION_PRINT == True:
                             print("Check: FAIL")
                         checksumErrors.append(str(fileNameMaster))
                         result = False
+            
             if self.OPTION_PRINT == True:
                 print("" + str(pathMaster), end=" : ", flush=True)
+            # append result to printed working directory
             if result == True:
                 print("PASS")
             else:
                 print("FAILED!!!")
-            # print results
+            # print failed items
             for file in checksumErrors:
                 print("[MISMATCH] " + str(file))
             for file in missingItemsInPathClone:
@@ -265,13 +277,17 @@ class vrfy:
         #create sums.csv, if directory contains files
         result = True
         if len(filesMaster) > 0:
+            # print current working directory
             print("" + str(pathMaster), end=" : ", flush=True)
             try:
                 f = open(self.os.path.join(pathMaster, "sums.csv"), "w")
+                # do not hash "sums.csv" itself
                 if "sums.csv" in filesMaster:
                     filesMaster.remove("sums.csv")
+                # iterate through all files of current directory and add their names and checksums to "sums.csv"
                 for file in filesMaster:
                     hash_digest = str(self.calcChecksum(self.os.path.join(pathMaster, file)))
+                    # only add files without checksum errors and trigger error condition, when checksum calculation failed
                     if hash_digest != self.HASH_ERROR: 
                         f.write(str(file) + ";" + str(hash_digest) + "\n")
                     else:
@@ -303,6 +319,7 @@ class vrfy:
             else:
                 print(str(pathMaster), end=" : ", flush=True)
             
+            # do not try to verify "sums.csv" as it will not be included in "sums.csv"
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
             
@@ -324,8 +341,8 @@ class vrfy:
             
             resultVerify = True
             
-            # verify that all files in directory are included in sums.csv,and vice versa
-            checksumErrors = []
+            # verify that all files in current working directory are included in sums.csv, and vice versa
+            # trigger error condition if check failed
             missingItemsInSumsCSV = [i for i in filesMaster if i not in sumsDict.keys()]
             additionalItemsInSumsCSV = [i for i in sumsDict.keys() if i not in filesMaster]
             if len(missingItemsInSumsCSV) != 0:
@@ -333,19 +350,22 @@ class vrfy:
             if len(additionalItemsInSumsCSV) != 0:
                 resultVerify = False
                 
+            checksumErrors = []
             # iterate through all files and compare their checksum with those stored in sums.csv
             for file in sumsDict.keys():
                 checksumCalc = str(self.calcChecksum(self.os.path.join(pathMaster, file)))
                 checksumSaved = sumsDict[file]
+                # print checksums if requested by user
                 if self.OPTION_PRINT == True:
                     print("File: " + file)
                     print("Master: " + checksumCalc)
                     print("Saved: " + checksumSaved)
                     print(self.LINE_BREAK)
+                # verify calculated checksum against the one stored in sums.csv
                 if checksumCalc != checksumSaved:
+                    # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                     checksumErrors.append(file)
                     resultVerify = False
-                    #print("\n>>> File mismatch: " + file + " == Saved: " + checksumSaved + " / Calc: " + checksumCalc, end=" ", flush=True)
                 elif checksumCalc == checksumSaved:
                     pass
                 else:
@@ -355,15 +375,15 @@ class vrfy:
                     import sys
                     sys.exit(1)
             
-            # append result to printed working directory
+            
             if self.OPTION_PRINT == True:
                 print("" + str(pathMaster), end=" : ", flush=True)
+            # append result to printed working directory
             if resultVerify == True:
                 print("PASS")
             else:
-                print("FAILED!!!")
-                
-            # print results
+                print("FAILED!!!")    
+            # print failed items
             for file in checksumErrors:
                 print("[MISMATCH] " + str(file))
             for file in missingItemsInSumsCSV:
@@ -376,7 +396,7 @@ class vrfy:
                 
             return resultVerify
         
-        # return with True, in case no files are needed to be verifed
+        # return with True, in case no files needed to be verifed
         return True
 
     def walker(self, pathMaster, pathClone, func):
