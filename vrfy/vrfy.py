@@ -299,6 +299,25 @@ class vrfy:
                 return False 
         return result
         
+    def readSumsCsvFile(self, filePath):
+        # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
+        sumsDict = dict()
+        try:
+            f = open(self.os.path.join(filePath, "sums.csv"), "r") 
+            for line in f.readlines():
+                entry = line.replace("\n","").split(";")
+                # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
+                if entry[1][:2] == "b'" and entry[1][-1] == "'":
+                    entry[1] = entry[1][2:-1]
+                sumsDict[entry[0]] = entry[1] 
+            f.close()
+        except:
+            # except file errors, and close verification with FAIL (i.e. "False" result)
+            print("\n>>> ERROR: No sums.csv found!")
+            return False
+        return sumsDict
+        
+        
     def verifySums(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
@@ -323,21 +342,8 @@ class vrfy:
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
             
-            # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
-            try:
-                f = open(self.os.path.join(pathMaster, "sums.csv"), "r")
-                sumsDict = dict() 
-                for line in f.readlines():
-                    entry = line.replace("\n","").split(";")
-                    # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
-                    if entry[1][:2] == "b'" and entry[1][-1] == "'":
-                        entry[1] = entry[1][2:-1]
-                    sumsDict[entry[0]] = entry[1] 
-                f.close()
-            except:
-                # except file errors, and close verification with FAIL (i.e. "False" result)
-                print("\n>>> ERROR: No sums.csv found!")
-                return False
+            # read checksum file and get dictionary
+            sumsDict = self.readSumsCsvFile(pathMaster) 
             
             resultVerify = True
             
