@@ -5,6 +5,7 @@ class vrfy:
     
     VERSION_STR = "0.3.0"
     
+    #options
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
@@ -13,6 +14,12 @@ class vrfy:
     PRINT = "-p"
     FILE = "-f"
     CHECKSUM = "-cs"
+    MERGE = "-merge"
+    MASTER_DIR = "-m"
+    CLONE_DIR = "-c"
+    MERGE_MASTER_TO_CLONE = "-MergeMasterToClone"
+    MERGE_CLONE_TO_MASTER = "-MergeCloneToMaster"
+    MERGE_MIRRORED = "-MergeMirrored"
     OPTION_RECURSIVE = False
     OPTION_CREATE_CSV = False
     OPTION_VERIFY_CSV = False
@@ -20,6 +27,9 @@ class vrfy:
     OPTION_PRINT = False
     OPTION_FILE = -1
     OPTION_CHECKSUM = -1
+    OPTION_MASTER_DIR = -1
+    OPTION_CLONE_DIR = -1
+    OPTION_MERGE = ""
     
     HASH_ERROR = "ERROR"
     LINE_BREAK = "-----------------------------------------"
@@ -79,8 +89,11 @@ class vrfy:
                 self.OPTION_MERGE = arguments[index]
         
         executionResult = False
+        # cli option: vrfy -version
+        if self.OPTION_VERIFY_VERSION == True:
+            print("vrfy version: " + str(self.VERSION_STR))
         # cli option: vrfy
-        if len(arguments) == 0:
+        elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
@@ -182,8 +195,8 @@ class vrfy:
             #print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
         return sha256_hash.hexdigest()
-
-
+   
+   
     def verifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
