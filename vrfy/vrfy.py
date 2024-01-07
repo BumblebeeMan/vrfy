@@ -99,6 +99,10 @@ class vrfy:
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
+            # verify sums
+            print("Verifying current working directory against checksums:")
+            executionResult = self.walker(directories[0], directories[0], self.verifySums)
+            self.__printResults__(executionResult)
         # cli option: vrfy <<directory>> <<directory>>
         elif (len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1])):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
