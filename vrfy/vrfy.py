@@ -3,7 +3,7 @@ class vrfy:
     import os
     import subprocess
     
-    VERSION_STR = "0.3.0"
+    VERSION_STR = "0.3.1"
     
     #options
     GLOBAL_VERBOSITY = None

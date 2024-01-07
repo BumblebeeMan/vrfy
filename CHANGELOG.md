@@ -2,6 +2,17 @@
 
 All important changes to this vrfy will be documented here.
 
+## [0.3.1]
+
+### Added
+- n/a
+
+### Changed
+- n/a
+
+### Fixed
+- Fix crash when option -v is used on directory without checksum file. 
+
 ## [0.3.0]
 
 ### Added
