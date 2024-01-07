@@ -93,7 +93,7 @@ class vrfy:
         if self.OPTION_VERIFY_VERSION == True:
             print("vrfy version: " + str(self.VERSION_STR))
         # cli option: vrfy
-        if len(arguments) == 0:
+        elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             import os
             directories.append(os.getcwd())
