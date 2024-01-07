@@ -245,15 +245,16 @@ class vrfy:
                         print("File: " + fileNameMaster)
                         print("Master: " + checksumMaster)
                         print("Clone: " + checksumClone)
-                        print(self.LINE_BREAK)
                     # verify that both match and both are NOT "HASH_ERROR"
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         if self.OPTION_PRINT == True:
                             print("Check: PASS")
+                            print(self.LINE_BREAK)
                     else:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         if self.OPTION_PRINT == True:
                             print("Check: FAIL")
+                            print(self.LINE_BREAK)
                         checksumErrors.append(str(fileNameMaster))
                         result = False
             
@@ -425,16 +426,20 @@ class vrfy:
                 # print checksums if requested by user
                 if self.OPTION_PRINT == True:
                     print("File: " + file)
-                    print("Master: " + checksumCalc)
+                    print("Calculated: " + checksumCalc)
                     print("Saved: " + checksumSaved)
-                    print(self.LINE_BREAK)
                 # verify calculated checksum against the one stored in sums.csv
                 if checksumCalc != checksumSaved:
                     # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                     checksumErrors.append(file)
                     resultVerify = False
+                    if self.OPTION_PRINT == True:
+                        print("Check: FAIL")
+                        print(self.LINE_BREAK)
                 elif checksumCalc == checksumSaved:
-                    pass
+                    if self.OPTION_PRINT == True:
+                        print("Check: PASS")
+                        print(self.LINE_BREAK)
                 else:
                     # shall never be executed
                     resultVerify = False
