@@ -317,6 +317,16 @@ class vrfy:
 
 
     def getChecksumsFromFile(self, filePathName):
+        """
+        Reads and decodes checksums from file and returns a filename / hash digest dictionary.
+        Note: To be used, when undefined whether *.sha256sum or sums.csv was provided by user.
+
+        Parameters:
+            filePathName (str): Path + file name to directory where *.sha256sum/sums.csv-file is located.
+        
+        Returns:
+            dict:   dict[filename] = hash digest.
+        """
         path, filename = self.os.path.split(filePathName)
         name, extension = self.os.path.splitext(self.os.path.basename(filePathName))
         if extension == ".sha256sum":
