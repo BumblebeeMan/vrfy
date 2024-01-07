@@ -30,6 +30,7 @@ or (checksums are printed to console)
 ```bash
 vrfy -m /path/of/master -c /path/of/clone -r -p
 ```
+
 ### 2. Storing checksums for future verification
 Creating a file that lists checksums for all files within a directory:
 ```bash
@@ -39,6 +40,7 @@ Using **-r** (recursive) all in sub-directories as well:
 ```bash
 vrfy -r -c /path/of/data
 ```
+
 ### 3. Verifing files against stored checksums
 Verifying that all files within a directory haven't been changed (i.e., their checksums still match):
 ```bash
@@ -60,6 +62,11 @@ Verifying file against an expected checksum:
 ```bash
 vrfy -f /path/of/file/filename -cs expectedChecksum
 ```
+Where "expectedChecksum" can be one of the following:
+- A string containing the expected sha256 hash digest.
+- A *.sha256sum-file that includes the expected hash digest.
+- A sums.csv-file created by **vrfy** that includes the expected hash digest.
+
 ### 4. Other CLI options
 Display version of vrfy:
 ```bash
