@@ -407,6 +407,12 @@ class vrfy:
         Returns:
             bool:   True, when contents of directory are verified successfully against sums.csv, else False.
         """
+        # check if checksum file is available, if not abort execution
+        if "sums.csv" not in filesMaster and len(filesMaster) > 0:
+            print(str(pathMaster) + " : FAIL")
+            print("ERROR: Unable to find checksum file!")
+            return False
+            
         if len(filesMaster) > 0:
             # print current working directory without line ending
             if self.OPTION_PRINT == True:
