@@ -373,7 +373,7 @@ class vrfyCli:
             print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
             print("Clone: " + str(arguments[self.OPTION_CLONE_DIR]))
             self.OPTION_RECURSIVE = True
-            executionResult = self.walker(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], vf.VerifyFiles)
+            executionResult = self.__walker__(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
         elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
