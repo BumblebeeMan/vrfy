@@ -178,8 +178,8 @@ class vrfy:
                     # calculate checksums for master and clone file
                     masterFilePath = self.os.path.join(pathMaster, fileNameMaster)
                     cloneFilePath = self.os.path.join(pathClone, fileNameMaster)
-                    checksumMaster = self.calcChecksum(masterFilePath)
-                    checksumClone = self.calcChecksum(cloneFilePath)
+                    checksumMaster = self.__calcChecksum__(masterFilePath)
+                    checksumClone = self.__calcChecksum__(cloneFilePath)
                     # verify that both match and both are NOT "HASH_ERROR"
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         pass
@@ -376,8 +376,9 @@ class vrfyCli:
             executionResult = self.walker(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
-        """elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
-            calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
+        elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
+            print("Rework needed.")
+            """calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
             if self.OPTION_PRINT == True:
                 name, extension = self.os.path.splitext(self.os.path.basename(arguments[self.OPTION_FILE]))
                 print(str(calcChecksum) + "  " + str(name) + str(extension))
@@ -397,9 +398,9 @@ class vrfyCli:
                     executionResult = True
                 else:
                     executionResult = False
-                self.__printResults__(executionResult) """
+                self.__printResults__(executionResult)"""
         # cli option: vrfy -c <<directory>>
-        if self.OPTION_CREATE_CSV == True:
+        elif self.OPTION_CREATE_CSV == True:
             if len(directories) == 1:
                 # create sums
                 print("Creating checksums for files:")
