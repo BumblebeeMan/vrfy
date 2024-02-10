@@ -22,6 +22,24 @@ class vrfy:
     def GetVersion(self):
         return self.VERSION_STR
 
+    def VerifyFile(self, filePath, expectedChecksum=""):
+        executionResult = False
+        expectation = expectedChecksum
+        calcChecksum = self.__calcChecksum__(filePath)
+        # no hex checksum provided, read sums.csv / *.sha256sums-file
+        if self.os.path.isfile(expectedChecksum):
+            try:
+                path, filename = self.os.path.split(filePath)
+                sumsDict = self.__getChecksumsFromFile__(expectedChecksum)
+                expectation = sumsDict[filename]
+            except:
+                #expectation = ""
+                executionResult = False
+        if calcChecksum == expectation:
+            return (True, calcChecksum)
+        else:
+            return (False, calcChecksum)
+
     def VerifyFilesAgainstChecksums(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
@@ -204,9 +222,9 @@ class vrfy:
         path, filename = self.os.path.split(filePathName)
         name, extension = self.os.path.splitext(self.os.path.basename(filePathName))
         if extension == ".sha256sum":
-            return self.readSha256SumFile(path, filename)
+            return self.__readSha256SumFile__(path, filename)
         elif filename == "sums.csv":
-            return self.readSumsCsvFile(path)
+            return self.__readSumsCsvFile__(path)
         else:
             return dict()
 
@@ -377,28 +395,16 @@ class vrfyCli:
             self.__printOverallResult__(executionResult)
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
         elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
-            print("Rework needed.")
-            """calcChecksum = self.calcChecksum(arguments[self.OPTION_FILE])
-            if self.OPTION_PRINT == True:
-                name, extension = self.os.path.splitext(self.os.path.basename(arguments[self.OPTION_FILE]))
-                print(str(calcChecksum) + "  " + str(name) + str(extension))
-                executionResult = True
             if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
-                givenChecksum = arguments[self.OPTION_CHECKSUM]
-                if self.os.path.isfile(arguments[self.OPTION_CHECKSUM]):
-                    try:
-                        path, filename = self.os.path.split(arguments[self.OPTION_FILE])
-                        sumsDict = self.getChecksumsFromFile(arguments[self.OPTION_CHECKSUM])
-                        givenChecksum = sumsDict[filename]
-                    except:
-                        givenChecksum = ""
-                        executionResult = False
-                        print("Error: Option '" + str(self.CHECKSUM) + "' provided, but no checksum found in file" + str(arguments[self.OPTION_CHECKSUM]) + ".")
-                if calcChecksum == givenChecksum:
-                    executionResult = True
-                else:
-                    executionResult = False
-                self.__printResults__(executionResult)"""
+                executionResult, calcChecksum = vf.VerifyFile(arguments[self.OPTION_FILE], arguments[self.OPTION_CHECKSUM])
+            else:
+                executionResult, calcChecksum = vf.VerifyFile(arguments[self.OPTION_FILE], "")
+            if self.OPTION_PRINT:
+                path, filename = self.os.path.split(arguments[self.OPTION_FILE])
+                print(calcChecksum + "  " + str(filename))
+            else:
+                self.__printOverallResult__(executionResult)
+
         # cli option: vrfy -c <<directory>>
         elif self.OPTION_CREATE_CSV == True:
             if len(directories) == 1:
