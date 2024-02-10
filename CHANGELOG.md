@@ -1,6 +1,18 @@
 # Changelog
 
-All important changes to this vrfy will be documented here.
+All important changes to vrfy will be documented here.
+
+## [0.4.x]
+
+### Added
+- n/a
+
+### Changed
+- Code refactor: Separate CLI and core functionality, introduce data type for result post-processing, and code simplification
+- Removed "-p" from all CLI option except "-f"
+
+### Fixed
+- n/a
 
 ## [0.3.1]
 
