@@ -55,7 +55,7 @@ class vrfy:
         """
         # check if checksum file is available, if not abort execution
         if "sums.csv" not in filesMaster and len(filesMaster) > 0:
-            return self.Result(result=False)
+            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster)
 
         if len(filesMaster) > 0:
             # do not try to verify "sums.csv" as it will not be included in "sums.csv"
@@ -97,7 +97,7 @@ class vrfy:
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors)
 
         # return with True, in case no files needed to be verifed
-        return self.Result(result=True)
+        return self.Result(result=True, path=pathMaster)
 
     def WriteChecksumFile(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
         """
