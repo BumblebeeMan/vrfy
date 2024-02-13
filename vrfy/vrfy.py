@@ -250,7 +250,7 @@ class vrfy:
             f.close()
         except:
             # except file errors, and close verification with FAIL (i.e. "False" result)
-            print("\n>>> ERROR: No *.sha256sum-file found!")
+            return dict()
         return sumsDict
 
 
@@ -277,8 +277,7 @@ class vrfy:
             f.close()
         except:
             # except file errors, and close verification with FAIL (i.e. "False" result)
-            print("\n>>> ERROR: No sums.csv found!")
-            return False
+            return dict()
         return sumsDict
 
 
