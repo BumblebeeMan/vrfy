@@ -134,31 +134,6 @@ class vrfy:
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
 
 
-    def __calcChecksum__(self, filePath):
-        """
-        Calculates and returns file hash for >>filePath<<.
-
-        Parameters:
-            filePath (str): Path and name of the file that shall get hashed.
-
-        Returns:
-            str: Hash digest.
-        """
-        import hashlib
-        sha256_hash = hashlib.sha256()
-        try:
-            with open(filePath, 'rb') as file:
-                while True:
-                    block = file.read(8192)
-                    if not block:
-                        break
-                    sha256_hash.update(block)
-        except:
-            #print("ERROR: Unable to calculate SHA256 hash.")
-            return self.HASH_ERROR
-        return sha256_hash.hexdigest()
-
-
     def VerifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
@@ -203,6 +178,31 @@ class vrfy:
                         checksumErrors.append(str(fileNameMaster))
                         result = False
         return self.Result(result=result, path=pathMaster, missingMaster = additionalItemsInPathClone, additionalMaster = missingItemsInPathClone, ChecksumMismatch=checksumErrors)
+
+
+    def __calcChecksum__(self, filePath):
+        """
+        Calculates and returns file hash for >>filePath<<.
+
+        Parameters:
+            filePath (str): Path and name of the file that shall get hashed.
+
+        Returns:
+            str: Hash digest.
+        """
+        import hashlib
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(filePath, 'rb') as file:
+                while True:
+                    block = file.read(8192)
+                    if not block:
+                        break
+                    sha256_hash.update(block)
+        except:
+            #print("ERROR: Unable to calculate SHA256 hash.")
+            return self.HASH_ERROR
+        return sha256_hash.hexdigest()
 
 
     def __getChecksumsFromFile__(self, filePathName):
