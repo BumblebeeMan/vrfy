@@ -5,9 +5,7 @@ class vrfy:
             self.Result = result
             self.Path = path
             self.MissingInMaster = missingMaster
-            self.MissingInClone = missingClone
             self.AdditionalInMaster = additionalMaster
-            self.AdditionalInClone = additionalClone
             self.ChecksumMismatch = ChecksumMismatch
 
     import os
