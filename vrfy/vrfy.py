@@ -49,7 +49,7 @@ class vrfy:
             filesClone (List[str]): NOT USED! Included for compatibility reasons only.
 
         Returns:
-            bool:   True, when contents of directory are verified successfully against sums.csv, else False.
+            vrfy.Result: Results result object of type vrfy.Result.
         """
         # check if checksum file is available, if not abort execution
         if "sums.csv" not in filesMaster and len(filesMaster) > 0:
@@ -108,7 +108,7 @@ class vrfy:
             filesClone (List[str]): NOT USED! Included for compatibility reasons only.
 
         Returns:
-            bool:   True, when file sums.csv is created successfully, else False.
+            vrfy.Result: Results result object of type vrfy.Result.
         """
         #create sums.csv, if directory contains files
         result = True
@@ -170,8 +170,7 @@ class vrfy:
             filesClone (List[str]): Names of all files that are included in the directory >>pathClone<<.
 
         Returns:
-            bool:   True, when contents of directory "pathMaster" are verified successfully against "pathClone".
-                    False, when at least one file mismatches.
+            vrfy.Result: Results result object of type vrfy.Result.
         """
         result = True
         # start file verification, when files are included in directory
