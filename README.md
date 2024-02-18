@@ -16,7 +16,7 @@ Install **vrfy** using pip:
 pip install vrfy --user
 ```
  
-## Usage
+## Usage the CLI
 ### 1. Verifing that two directories are identical
 Verifing that the contents of '/path/of/clone' are identical to those of '/path/of/master'. For example, '/path/of/master' might be a local backup, whereas '/path/of/clone' might be loaded from cloud storage. 
 ```bash
@@ -75,4 +75,13 @@ vrfy -version
 Display checksum for given file:
 ```bash
 vrfy -p -f /path/of/file/filename
+```
+
+## Using the python package
+### Getting started
+Example to read version of installed vrfy-package:
+```python
+from vrfy import vrfy
+vf = vrfy.vrfy()
+vf.GetVersion()
 ```

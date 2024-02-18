@@ -9,7 +9,7 @@ All important changes to vrfy will be documented here.
 
 ### Changed
 - Code refactor: Separate CLI and core functionality, introduce data type for result post-processing, and code simplification
-- Removed "-p" from all CLI option except "-f"
+- Moved cli from vrfy into own class
 
 ### Fixed
 - n/a
