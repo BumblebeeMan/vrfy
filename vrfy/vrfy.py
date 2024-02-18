@@ -106,11 +106,11 @@ class vrfy:
                     # file is included in sums.csv, but not in directory
                     resultVerify = False
 
-
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors, masterChecksums=fileHashDict, cloneChecksums=sumsDict)
 
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
+
 
     def WriteChecksumFile(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
         """
@@ -301,7 +301,9 @@ class vrfy:
 
 
 
+
 class vrfyCli:
+
     import os
     import subprocess
 
@@ -383,6 +385,7 @@ class vrfyCli:
         # cli option: vrfy -version
         if self.OPTION_VERIFY_VERSION == True:
             print("vrfy version: " + str(vf.GetVersion()))
+
         # cli option: vrfy
         elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
@@ -394,6 +397,7 @@ class vrfyCli:
             print("Verifying current working directory against checksums:")
             executionResult = self.__walker__(directories[0], directories[0], vf.VerifyFilesAgainstChecksums)
             self.__printOverallResult__(executionResult)
+
         # cli option: vrfy <<directory>> <<directory>>
         elif (len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1])):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
@@ -403,6 +407,7 @@ class vrfyCli:
             self.OPTION_RECURSIVE = True
             executionResult = self.__walker__(arguments[0], arguments[1], vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
+
         # cli option: vrfy -m <<directory>> -c <<directory>>
         elif self.OPTION_MASTER_DIR >= 0 and self.OPTION_MASTER_DIR <= len(arguments) - 1 and self.OPTION_CLONE_DIR >= 0 and self.OPTION_CLONE_DIR <= len(arguments) - 1:
             print("Verifying directories:")
@@ -411,6 +416,7 @@ class vrfyCli:
             self.OPTION_RECURSIVE = True
             executionResult = self.__walker__(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
+
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
         elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
             if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
@@ -434,6 +440,7 @@ class vrfyCli:
                 self.__printOverallResult__(executionResult)
             else:
                 print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(len(directories)) + "' directories are given (required: 1).")
+
         # cli option: vrfy -v <<directory>>
         elif self.OPTION_VERIFY_CSV == True:
             if len(directories) == 1:
@@ -488,6 +495,7 @@ class vrfyCli:
             # terminate, since paths are not pointing to valid directories
             return False
 
+
     def __printResult__(self, result: vrfy.Result):
         if result.Result == True:
             print("PASS")
@@ -500,16 +508,19 @@ class vrfyCli:
         for file in result.MissingInMaster:
             print("[-] " + str(file))
 
+
     def __printOverallResult__(self, res):
         if res:
             print("Overall: PASS")
         else:
             print("Overall: FAIL")
 
+
 def main():
     import sys
     verify = vrfyCli()
     sys.exit(verify.parseArgumentsAndExecute(sys.argv[1:]))
+
 
 if __name__ == "__main__":
     main()
