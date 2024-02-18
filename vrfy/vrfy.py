@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 class vrfy:
     class Result:
-        def __init__(self, result, path, missingMaster = [], missingClone = [], additionalMaster = [], additionalClone = [], ChecksumMismatch = []):
+        def __init__(self, result, path, missingMaster = [], additionalMaster = [], ChecksumMismatch = [], masterChecksums = [], cloneChecksums = [],):
             self.Result = result
             self.Path = path
             self.MissingInMaster = missingMaster
             self.AdditionalInMaster = additionalMaster
             self.ChecksumMismatch = ChecksumMismatch
+            self.MasterChecksums = masterChecksums
+            self.CloneChecksums = cloneChecksums
 
     import os
     import subprocess
@@ -21,22 +23,32 @@ class vrfy:
         return self.VERSION_STR
 
     def VerifyFile(self, filePath, expectedChecksum=""):
-        executionResult = False
+        masterHashDict = dict()
+        expHashDict = dict()
+        checksumErrors = []
+
+        resultVerify = True
         expectation = expectedChecksum
         calcChecksum = self.__calcChecksum__(filePath)
+        path, filename = self.os.path.split(filePath)
         # no hex checksum provided, read sums.csv / *.sha256sums-file
         if self.os.path.isfile(expectedChecksum):
             try:
-                path, filename = self.os.path.split(filePath)
                 sumsDict = self.__getChecksumsFromFile__(expectedChecksum)
                 expectation = sumsDict[filename]
             except:
-                #expectation = ""
-                executionResult = False
+                resultVerify = False
+        # store calculated and expected checksum
+        masterHashDict[filename] = calcChecksum
+        expHashDict[filename] = expectation
         if calcChecksum == expectation:
-            return (True, calcChecksum)
+            pass
         else:
-            return (False, calcChecksum)
+            resultVerify = False
+            checksumErrors.append(filename)
+
+        return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors, masterChecksums=masterHashDict, cloneChecksums=expHashDict)
+
 
     def VerifyFilesAgainstChecksums(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
         """
@@ -56,6 +68,7 @@ class vrfy:
             return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster)
 
         if len(filesMaster) > 0:
+            fileHashDict = dict()
             # do not try to verify "sums.csv" as it will not be included in "sums.csv"
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
@@ -80,6 +93,8 @@ class vrfy:
                 if file in filesMaster:
                     checksumCalc = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
                     checksumSaved = sumsDict[file]
+                    # save hashvalues for later analysis
+                    fileHashDict[file] = checksumCalc
                     # verify calculated checksum against the one stored in sums.csv
                     if checksumCalc == checksumSaved:
                         pass
@@ -92,7 +107,7 @@ class vrfy:
                     resultVerify = False
 
 
-            return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors)
+            return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors, masterChecksums=fileHashDict, cloneChecksums=sumsDict)
 
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
@@ -148,6 +163,11 @@ class vrfy:
             vrfy.Result: Results result object of type vrfy.Result.
         """
         result = True
+        masterHashDict = dict()
+        cloneHashDict = dict()
+        missingItemsInPathClone = []
+        additionalItemsInPathClone = []
+        checksumErrors = []
         # start file verification, when files are included in directory
         if len(filesMaster) > 0:
             # search for missing or additional files in master and clone, and trigger error condition
@@ -159,7 +179,6 @@ class vrfy:
                 result = False
 
             # iterate through all files of master directory and verify their checksums to those of the clone directory
-            checksumErrors = []
             for fileNameMaster in filesMaster:
                 # master file is not included on clone directory -> trigger error condition
                 if fileNameMaster not in filesClone:
@@ -170,6 +189,9 @@ class vrfy:
                     cloneFilePath = self.os.path.join(pathClone, fileNameMaster)
                     checksumMaster = self.__calcChecksum__(masterFilePath)
                     checksumClone = self.__calcChecksum__(cloneFilePath)
+                    # save hashvalues for later analysis
+                    masterHashDict[fileNameMaster] = checksumMaster
+                    cloneHashDict[fileNameMaster] = checksumClone
                     # verify that both match and both are NOT "HASH_ERROR"
                     if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         pass
@@ -177,7 +199,7 @@ class vrfy:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         checksumErrors.append(str(fileNameMaster))
                         result = False
-        return self.Result(result=result, path=pathMaster, missingMaster = additionalItemsInPathClone, additionalMaster = missingItemsInPathClone, ChecksumMismatch=checksumErrors)
+        return self.Result(result=result, path=pathMaster, missingMaster = additionalItemsInPathClone, additionalMaster = missingItemsInPathClone, ChecksumMismatch=checksumErrors, masterChecksums=masterHashDict, cloneChecksums=cloneHashDict)
 
 
     def __calcChecksum__(self, filePath):
@@ -392,11 +414,13 @@ class vrfyCli:
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
         elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
             if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
-                executionResult, calcChecksum = vf.VerifyFile(arguments[self.OPTION_FILE], arguments[self.OPTION_CHECKSUM])
+                res = vf.VerifyFile(arguments[self.OPTION_FILE], arguments[self.OPTION_CHECKSUM])
             else:
-                executionResult, calcChecksum = vf.VerifyFile(arguments[self.OPTION_FILE], "")
+                res = vf.VerifyFile(arguments[self.OPTION_FILE], "")
+            executionResult = res.Result
+            path, filename = self.os.path.split(arguments[self.OPTION_FILE])
+            calcChecksum = res.MasterChecksums[filename]
             if self.OPTION_PRINT:
-                path, filename = self.os.path.split(arguments[self.OPTION_FILE])
                 print(calcChecksum + "  " + str(filename))
             else:
                 self.__printOverallResult__(executionResult)
