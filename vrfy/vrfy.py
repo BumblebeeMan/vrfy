@@ -503,10 +503,17 @@ class vrfyCli:
             print("FAILED!!!")
         for file in result.ChecksumMismatch:
             print("[MISMATCH] " + str(file))
+            if self.OPTION_PRINT == True:
+                print("- Master: " + result.MasterChecksums[file])
+                print("- Clone: " + result.CloneChecksums[file])
         for file in result.AdditionalInMaster:
             print("[+] " + str(file))
+            if self.OPTION_PRINT == True:
+                print("- cs: " + result.MasterChecksums[file])
         for file in result.MissingInMaster:
             print("[-] " + str(file))
+            if self.OPTION_PRINT == True:
+                print("- cs: " + result.CloneChecksums[file])
 
 
     def __printOverallResult__(self, res):
