@@ -8,7 +8,7 @@ with open("README.md", "r", encoding='utf-8') as file:
 
 setup(
     name = 'vrfy',
-    version = '0.4.x',
+    version = '0.4.0',
     description = 'Verify with VRFY: Ensure the integrity of your file copies, hash by hash!',
     long_description = long_description,
     long_description_content_type='text/markdown',

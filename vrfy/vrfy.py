@@ -11,7 +11,7 @@ class vrfy:
     import os
     import subprocess
 
-    VERSION_STR = "0.4.x"
+    VERSION_STR = "0.4.0"
     HASH_ERROR = "ERROR"
 
     def __init__(self):
