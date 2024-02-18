@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 class vrfy:
     class Result:
-        def __init__(self, result, path, missingMaster = [], additionalMaster = [], ChecksumMismatch = [], masterChecksums = [], cloneChecksums = [],):
+        def __init__(self, result, path, missingMaster = [], additionalMaster = [], ChecksumMismatch = [], masterChecksums = dict(), cloneChecksums = dict()):
             self.Result = result
             self.Path = path
             self.MissingInMaster = missingMaster
@@ -63,12 +63,15 @@ class vrfy:
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
+        fileHashDict = dict()
         # check if checksum file is available, if not abort execution
         if "sums.csv" not in filesMaster and len(filesMaster) > 0:
-            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster)
+            # calculate has values for additional files
+            for file in filesMaster:
+                fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
+            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster, masterChecksums=fileHashDict)
 
         if len(filesMaster) > 0:
-            fileHashDict = dict()
             # do not try to verify "sums.csv" as it will not be included in "sums.csv"
             if "sums.csv" in filesMaster:
                 filesMaster.remove("sums.csv")
@@ -105,6 +108,10 @@ class vrfy:
                 else:
                     # file is included in sums.csv, but not in directory
                     resultVerify = False
+
+            # calculate has values for additional files
+            for file in missingItemsInSumsCSV:
+                fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
 
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors, masterChecksums=fileHashDict, cloneChecksums=sumsDict)
 
