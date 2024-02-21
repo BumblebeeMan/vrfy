@@ -20,10 +20,16 @@ class vrfy:
     def __init__(self):
         pass
 
-    def GetVersion(self):
+    def GetVersion(self) -> str:
+        """
+        Returns version string.
+
+        Returns:
+            str: Returns version string.
+        """
         return self.VERSION_STR
 
-    def VerifyFile(self, filePath, expectedChecksum=""):
+    def VerifyFile(self, filePath: str, expectedChecksum: str = "") -> Result:
         """
         Verifies the contents of file "filePath" against the checksum provided with "expectedChecksum".
 
@@ -47,7 +53,7 @@ class vrfy:
             try:
                 sumsDict = self.__getChecksumsFromFile__(expectedChecksum)
                 expectation = sumsDict[filename]
-            except:
+            except Exception:
                 resultVerify = False
         # store calculated and expected checksum
         masterHashDict[filename] = calcChecksum
@@ -61,7 +67,8 @@ class vrfy:
         return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors,
                            masterChecksums=masterHashDict, cloneChecksums=expHashDict)
 
-    def VerifyFilesAgainstChecksums(self, pathMaster, filesMaster, pathClone=[], filesClone=[]):
+    def VerifyFilesAgainstChecksums(self, pathMaster: str, filesMaster: list,
+                                    pathClone: str = "", filesClone: list = None) -> Result:
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
@@ -79,7 +86,7 @@ class vrfy:
         if "sums.csv" not in filesMaster and len(filesMaster) > 0:
             # calculate has values for additional files
             for file in filesMaster:
-                fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
+                fileHashDict[file] = self.__calcChecksum__(self.os.path.join(pathMaster, file))
             return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster,
                                masterChecksums=fileHashDict)
 
@@ -106,7 +113,7 @@ class vrfy:
             # iterate through all files and compare their checksum with those stored in sums.csv
             for file in sumsDict.keys():
                 if file in filesMaster:
-                    checksumCalc = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
+                    checksumCalc = self.__calcChecksum__(self.os.path.join(pathMaster, file))
                     checksumSaved = sumsDict[file]
                     # save hashvalues for later analysis
                     fileHashDict[file] = checksumCalc
@@ -123,7 +130,7 @@ class vrfy:
 
             # calculate has values for additional files
             for file in missingItemsInSumsCSV:
-                fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
+                fileHashDict[file] = self.__calcChecksum__(self.os.path.join(pathMaster, file))
 
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV,
                                additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
@@ -132,7 +139,8 @@ class vrfy:
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
 
-    def WriteChecksumFile(self, pathMaster, filesMaster, pathClone=[], filesClone=[]):
+    def WriteChecksumFile(self, pathMaster: str, filesMaster: list,
+                          pathClone: str = "", filesClone: list = None) -> Result:
         """
         Creates file sums.csv with checksums for files [filesMaster] in >>pathMaster<<.
 
@@ -156,24 +164,27 @@ class vrfy:
                     filesMaster.remove("sums.csv")
                 # iterate through all files of current directory and add their names and checksums to "sums.csv"
                 for file in filesMaster:
-                    hash_digest = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
-                    # only add files without checksum errors and trigger error condition, when checksum calculation failed
+                    hash_digest = self.__calcChecksum__(self.os.path.join(pathMaster, file))
+                    # only add files without checksum errors and trigger error condition, when checksum calculation
+                    # failed
                     if hash_digest != self.HASH_ERROR:
                         f.write(str(file) + ";" + str(hash_digest) + "\n")
                     else:
                         result = False
                         hashMismatch.append(str(file))
                 f.close()
-            except:
+            except Exception:
                 return self.Result(result=False, path=pathMaster, ChecksumMismatch=hashMismatch)
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
 
-    def VerifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
+    def VerifyFiles(self, pathMaster: str, filesMaster: list, pathClone: str, filesClone: list) -> Result:
         """
-        Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file checksums.
+        Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file
+        checksums.
 
         Parameters:
-            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison.
+            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
+                                a baseline for comparison.
             filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
             pathClone (str): Path to clone directory whose files shall get verified against the master copy.
             filesClone (List[str]): Names of all files that are included in the directory >>pathClone<<.
@@ -222,7 +233,7 @@ class vrfy:
                            additionalMaster=missingItemsInPathClone, ChecksumMismatch=checksumErrors,
                            masterChecksums=masterHashDict, cloneChecksums=cloneHashDict)
 
-    def __calcChecksum__(self, filePath):
+    def __calcChecksum__(self, filePath: str) -> str:
         """
         Calculates and returns file hash for >>filePath<<.
 
@@ -241,12 +252,12 @@ class vrfy:
                     if not block:
                         break
                     sha256_hash.update(block)
-        except:
+        except Exception:
             # print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
-        return sha256_hash.hexdigest()
+        return str(sha256_hash.hexdigest())
 
-    def __getChecksumsFromFile__(self, filePathName):
+    def __getChecksumsFromFile__(self, filePathName: str) -> dict:
         """
         Reads and decodes checksums from file and returns a filename / hash digest dictionary.
         Note: To be used, when undefined whether *.sha256sum or sums.csv was provided by user.
@@ -266,7 +277,7 @@ class vrfy:
         else:
             return dict()
 
-    def __readSha256SumFile__(self, filePath, fileName):
+    def __readSha256SumFile__(self, filePath: str, fileName: str) -> dict:
         """
         Reads and decodes *.sha256sum-files and returns a filename / hash digest dictionary.
 
@@ -285,12 +296,12 @@ class vrfy:
                 entry = line.replace("\n", "").split("  ")
                 sumsDict[entry[1]] = entry[0]
             f.close()
-        except:
+        except IOError:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             return dict()
         return sumsDict
 
-    def __readSumsCsvFile__(self, filePath):
+    def __readSumsCsvFile__(self, filePath: str) -> dict:
         """
         Reads and decodes sums.csv-files and returns a filename / hash digest dictionary.
 
@@ -311,7 +322,7 @@ class vrfy:
                     entry[1] = entry[1][2:-1]
                 sumsDict[entry[0]] = entry[1]
             f.close()
-        except:
+        except IOError:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             return dict()
         return sumsDict
@@ -323,29 +334,29 @@ class vrfyCli:
 
     # options
     GLOBAL_VERBOSITY = None
-    CREATE_CSV = "-c"
-    VERIFY_CSV = "-v"
-    RECURSIVE = "-r"
-    VERSION = "-version"
-    PRINT = "-p"
-    FILE = "-f"
-    CHECKSUM = "-cs"
-    MASTER_DIR = "-m"
-    CLONE_DIR = "-c"
+    CREATE_CSV: str = "-c"
+    VERIFY_CSV: str = "-v"
+    RECURSIVE: str = "-r"
+    VERSION: str = "-version"
+    PRINT: str = "-p"
+    FILE: str = "-f"
+    CHECKSUM: str = "-cs"
+    MASTER_DIR: str = "-m"
+    CLONE_DIR: str = "-c"
     OPTION_RECURSIVE = False
-    OPTION_CREATE_CSV = False
-    OPTION_VERIFY_CSV = False
-    OPTION_VERIFY_VERSION = False
-    OPTION_PRINT = False
-    OPTION_FILE = -1
-    OPTION_CHECKSUM = -1
-    OPTION_MASTER_DIR = -1
-    OPTION_CLONE_DIR = -1
+    OPTION_CREATE_CSV: bool = False
+    OPTION_VERIFY_CSV: bool = False
+    OPTION_VERIFY_VERSION: bool = False
+    OPTION_PRINT: bool = False
+    OPTION_FILE: int = -1
+    OPTION_CHECKSUM: int = -1
+    OPTION_MASTER_DIR: int = -1
+    OPTION_CLONE_DIR: int = -1
 
     def __init__(self):
         pass
 
-    def parseArgumentsAndExecute(self, arguments):
+    def parseArgumentsAndExecute(self, arguments: list) -> int:
         """
         Decodes programm arguments and executes required methods.
 
@@ -472,17 +483,18 @@ class vrfyCli:
         else:
             print("No valid argument setting found!")
             return 1
-        if executionResult == True:
+        if executionResult:
             return 0
         else:
             return 1
 
-    def __walker__(self, pathMaster, pathClone, func):
+    def __walker__(self, pathMaster: str, pathClone: str, func) -> bool:
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
         Parameters:
-            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as a baseline for comparison. .
+            pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
+                                a baseline for comparison. .
             pathClone (str): Path to clone directory whose files shall get verified against the master copy.
             func (callable) -- Function that gets executed on the respective folder.
 
@@ -517,7 +529,7 @@ class vrfyCli:
             # terminate, since paths are not pointing to valid directories
             return False
 
-    def __printResult__(self, result: vrfy.Result):
+    def __printResult__(self, result: vrfy.Result) -> None:
         if result.Result:
             print("PASS")
         else:
@@ -536,7 +548,7 @@ class vrfyCli:
             if self.OPTION_PRINT:
                 print("- cs: " + result.CloneChecksums[file])
 
-    def __printOverallResult__(self, res):
+    def __printOverallResult__(self, res: bool):
         if res:
             print("Overall: PASS")
         else:
