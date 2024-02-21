@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 class vrfy:
     class Result:
-        def __init__(self, result, path, missingMaster = [], additionalMaster = [], ChecksumMismatch = [], masterChecksums = dict(), cloneChecksums = dict()):
+        def __init__(self, result, path, missingMaster=[], additionalMaster=[], ChecksumMismatch=[],
+                     masterChecksums=dict(), cloneChecksums=dict()):
             self.Result = result
             self.Path = path
             self.MissingInMaster = missingMaster
@@ -23,6 +24,16 @@ class vrfy:
         return self.VERSION_STR
 
     def VerifyFile(self, filePath, expectedChecksum=""):
+        """
+        Verifies the contents of file "filePath" against the checksum provided with "expectedChecksum".
+
+        Parameters:
+            filePath (str): Path + name to the file that should be verified.
+            expectedChecksum (str): Checksum value or path + file name of *.sha256-/sums.csv file.
+
+        Returns:
+            result, calculatedChecksum (bool, str): Tuple. Result of verification and calculated sum of "filePath".
+        """
         masterHashDict = dict()
         expHashDict = dict()
         checksumErrors = []
@@ -47,10 +58,10 @@ class vrfy:
             resultVerify = False
             checksumErrors.append(filename)
 
-        return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors, masterChecksums=masterHashDict, cloneChecksums=expHashDict)
+        return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors,
+                           masterChecksums=masterHashDict, cloneChecksums=expHashDict)
 
-
-    def VerifyFilesAgainstChecksums(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
+    def VerifyFilesAgainstChecksums(self, pathMaster, filesMaster, pathClone=[], filesClone=[]):
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
@@ -69,7 +80,8 @@ class vrfy:
             # calculate has values for additional files
             for file in filesMaster:
                 fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
-            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster, masterChecksums=fileHashDict)
+            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster,
+                               masterChecksums=fileHashDict)
 
         if len(filesMaster) > 0:
             # do not try to verify "sums.csv" as it will not be included in "sums.csv"
@@ -113,13 +125,14 @@ class vrfy:
             for file in missingItemsInSumsCSV:
                 fileHashDict[file] = str(self.__calcChecksum__(self.os.path.join(pathMaster, file)))
 
-            return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV, additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors, masterChecksums=fileHashDict, cloneChecksums=sumsDict)
+            return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV,
+                               additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
+                               masterChecksums=fileHashDict, cloneChecksums=sumsDict)
 
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
 
-
-    def WriteChecksumFile(self, pathMaster, filesMaster, pathClone = [], filesClone = []):
+    def WriteChecksumFile(self, pathMaster, filesMaster, pathClone=[], filesClone=[]):
         """
         Creates file sums.csv with checksums for files [filesMaster] in >>pathMaster<<.
 
@@ -132,7 +145,7 @@ class vrfy:
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
-        #create sums.csv, if directory contains files
+        # create sums.csv, if directory contains files
         result = True
         hashMismatch = []
         if len(filesMaster) > 0:
@@ -154,7 +167,6 @@ class vrfy:
             except:
                 return self.Result(result=False, path=pathMaster, ChecksumMismatch=hashMismatch)
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
-
 
     def VerifyFiles(self, pathMaster, filesMaster, pathClone, filesClone):
         """
@@ -206,8 +218,9 @@ class vrfy:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         checksumErrors.append(str(fileNameMaster))
                         result = False
-        return self.Result(result=result, path=pathMaster, missingMaster = additionalItemsInPathClone, additionalMaster = missingItemsInPathClone, ChecksumMismatch=checksumErrors, masterChecksums=masterHashDict, cloneChecksums=cloneHashDict)
-
+        return self.Result(result=result, path=pathMaster, missingMaster=additionalItemsInPathClone,
+                           additionalMaster=missingItemsInPathClone, ChecksumMismatch=checksumErrors,
+                           masterChecksums=masterHashDict, cloneChecksums=cloneHashDict)
 
     def __calcChecksum__(self, filePath):
         """
@@ -229,10 +242,9 @@ class vrfy:
                         break
                     sha256_hash.update(block)
         except:
-            #print("ERROR: Unable to calculate SHA256 hash.")
+            # print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
         return sha256_hash.hexdigest()
-
 
     def __getChecksumsFromFile__(self, filePathName):
         """
@@ -254,7 +266,6 @@ class vrfy:
         else:
             return dict()
 
-
     def __readSha256SumFile__(self, filePath, fileName):
         """
         Reads and decodes *.sha256sum-files and returns a filename / hash digest dictionary.
@@ -271,14 +282,13 @@ class vrfy:
         try:
             f = open(self.os.path.join(filePath, fileName), "r")
             for line in f.readlines():
-                entry = line.replace("\n","").split("  ")
+                entry = line.replace("\n", "").split("  ")
                 sumsDict[entry[1]] = entry[0]
             f.close()
         except:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             return dict()
         return sumsDict
-
 
     def __readSumsCsvFile__(self, filePath):
         """
@@ -295,7 +305,7 @@ class vrfy:
         try:
             f = open(self.os.path.join(filePath, "sums.csv"), "r")
             for line in f.readlines():
-                entry = line.replace("\n","").split(";")
+                entry = line.replace("\n", "").split(";")
                 # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
                 if entry[1][:2] == "b'" and entry[1][-1] == "'":
                     entry[1] = entry[1][2:-1]
@@ -307,14 +317,11 @@ class vrfy:
         return sumsDict
 
 
-
-
 class vrfyCli:
-
     import os
     import subprocess
 
-    #options
+    # options
     GLOBAL_VERBOSITY = None
     CREATE_CSV = "-c"
     VERIFY_CSV = "-v"
@@ -335,10 +342,8 @@ class vrfyCli:
     OPTION_MASTER_DIR = -1
     OPTION_CLONE_DIR = -1
 
-
     def __init__(self):
         pass
-
 
     def parseArgumentsAndExecute(self, arguments):
         """
@@ -367,30 +372,34 @@ class vrfyCli:
             if arguments[index] == self.PRINT:
                 self.OPTION_PRINT = True
             if arguments[index] == self.CHECKSUM:
-                if (len(arguments)-2) <= index + 1: # index + 1 shall be second to last or earlier
+                if (len(arguments) - 2) <= index + 1:  # index + 1 shall be second to last or earlier
                     self.OPTION_CHECKSUM = index + 1
                 else:
-                    print("Error: Option '" + str(self.CHECKSUM) + "' provided, but '" + str(self.CHECKSUM)+ "' is not followed by checksum to test.")
+                    print("Error: Option '" + str(self.CHECKSUM) + "' provided, but '" + str(
+                        self.CHECKSUM) + "' is not followed by checksum to test.")
             if arguments[index] == self.FILE:
                 if self.os.path.isfile(arguments[index + 1]):
                     self.OPTION_FILE = index + 1
                 else:
-                    print("Error: Option '" + str(self.FILE) + "' provided, but '" + str(arguments[index + 1]) + "' is no file.")
+                    print("Error: Option '" + str(self.FILE) + "' provided, but '" + str(
+                        arguments[index + 1]) + "' is no file.")
             if arguments[index] == self.MASTER_DIR:
                 if self.os.path.isdir(arguments[index + 1]):
                     self.OPTION_MASTER_DIR = index + 1
                 else:
-                    print("Error: Option '" + str(self.MASTER_DIR) + "' provided, but '" + str(arguments[index + 1]) + "' is no directory.")
+                    print("Error: Option '" + str(self.MASTER_DIR) + "' provided, but '" + str(
+                        arguments[index + 1]) + "' is no directory.")
             if arguments[index] == self.CLONE_DIR:
                 if self.os.path.isdir(arguments[index + 1]):
                     self.OPTION_CLONE_DIR = index + 1
                 else:
-                    print("Error: Option '" + str(self.CLONE_DIR) + "' provided, but '" + str(arguments[index + 1]) + "' is no directory.")
+                    print("Error: Option '" + str(self.CLONE_DIR) + "' provided, but '" + str(
+                        arguments[index + 1]) + "' is no directory.")
 
         # execute decoded options
         executionResult = False
         # cli option: vrfy -version
-        if self.OPTION_VERIFY_VERSION == True:
+        if self.OPTION_VERIFY_VERSION:
             print("vrfy version: " + str(vf.GetVersion()))
 
         # cli option: vrfy
@@ -406,7 +415,7 @@ class vrfyCli:
             self.__printOverallResult__(executionResult)
 
         # cli option: vrfy <<directory>> <<directory>>
-        elif (len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1])):
+        elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
             # only two paths are provided -> first: golden master / second: clone/copy to be verified
             print("Verifying directories:")
             print("Master: " + str(arguments[0]))
@@ -416,17 +425,18 @@ class vrfyCli:
             self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -m <<directory>> -c <<directory>>
-        elif self.OPTION_MASTER_DIR >= 0 and self.OPTION_MASTER_DIR <= len(arguments) - 1 and self.OPTION_CLONE_DIR >= 0 and self.OPTION_CLONE_DIR <= len(arguments) - 1:
+        elif 0 <= self.OPTION_MASTER_DIR <= len(arguments) - 1 and 0 <= self.OPTION_CLONE_DIR <= len(arguments) - 1:
             print("Verifying directories:")
             print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
             print("Clone: " + str(arguments[self.OPTION_CLONE_DIR]))
             self.OPTION_RECURSIVE = True
-            executionResult = self.__walker__(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR], vf.VerifyFiles)
+            executionResult = self.__walker__(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR],
+                                              vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
-        elif self.OPTION_FILE >= 0 and self.OPTION_FILE <= len(arguments) - 1:
-            if self.OPTION_CHECKSUM >= 0 and self.OPTION_CHECKSUM <= len(arguments) - 1:
+        elif 0 <= self.OPTION_FILE <= len(arguments) - 1:
+            if 0 <= self.OPTION_CHECKSUM <= len(arguments) - 1:
                 res = vf.VerifyFile(arguments[self.OPTION_FILE], arguments[self.OPTION_CHECKSUM])
             else:
                 res = vf.VerifyFile(arguments[self.OPTION_FILE], "")
@@ -439,24 +449,26 @@ class vrfyCli:
                 self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -c <<directory>>
-        elif self.OPTION_CREATE_CSV == True:
+        elif self.OPTION_CREATE_CSV:
             if len(directories) == 1:
                 # create sums
                 print("Creating checksums for files:")
                 executionResult = self.__walker__(directories[0], directories[0], vf.WriteChecksumFile)
                 self.__printOverallResult__(executionResult)
             else:
-                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(len(directories)) + "' directories are given (required: 1).")
+                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(
+                    len(directories)) + "' directories are given (required: 1).")
 
         # cli option: vrfy -v <<directory>>
-        elif self.OPTION_VERIFY_CSV == True:
+        elif self.OPTION_VERIFY_CSV:
             if len(directories) == 1:
                 # verify sums
                 print("Verifying files against checksums:")
                 executionResult = self.__walker__(directories[0], directories[0], vf.VerifyFilesAgainstChecksums)
                 self.__printOverallResult__(executionResult)
             else:
-                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(len(directories)) + "' directories are given (required: 1).")
+                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(
+                    len(directories)) + "' directories are given (required: 1).")
         else:
             print("No valid argument setting found!")
             return 1
@@ -481,47 +493,48 @@ class vrfyCli:
         import os
         if os.path.isdir(pathMaster) and os.path.isdir(pathClone):
             # create lists of files and directories that are included in current path
-            filesM = [entryA for entryA in os.listdir(pathMaster) if not os.path.isdir(os.path.join(pathMaster, entryA))]
+            filesM = [entryA for entryA in os.listdir(pathMaster) if
+                      not os.path.isdir(os.path.join(pathMaster, entryA))]
             filesC = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
-            dictsM = [entryDir for entryDir in os.listdir(pathMaster) if os.path.isdir(os.path.join(pathMaster, entryDir))]
+            dictsM = [entryDir for entryDir in os.listdir(pathMaster) if
+                      os.path.isdir(os.path.join(pathMaster, entryDir))]
 
             # execute requested operation
             print("" + str(pathMaster), end=" : ", flush=True)
             resultObject = func(pathMaster, filesM, pathClone, filesC)
             resultVerify = resultObject.Result
-            #ResultList.append(resultObject)
+            # ResultList.append(resultObject)
             self.__printResult__(resultObject)
 
             # jump into child directories, if recursive operation is requested
-            if self.OPTION_RECURSIVE == True:
+            if self.OPTION_RECURSIVE:
                 for nextFolder in dictsM:
-                    resultVerify = self.__walker__(os.path.join(pathMaster, nextFolder), os.path.join(pathClone, nextFolder), func) & resultVerify
+                    resultVerify = self.__walker__(os.path.join(pathMaster, nextFolder),
+                                                   os.path.join(pathClone, nextFolder), func) & resultVerify
 
             return resultVerify
         else:
             # terminate, since paths are not pointing to valid directories
             return False
 
-
     def __printResult__(self, result: vrfy.Result):
-        if result.Result == True:
+        if result.Result:
             print("PASS")
         else:
             print("FAILED!!!")
         for file in result.ChecksumMismatch:
             print("[MISMATCH] " + str(file))
-            if self.OPTION_PRINT == True:
+            if self.OPTION_PRINT:
                 print("- Master: " + result.MasterChecksums[file])
                 print("- Clone: " + result.CloneChecksums[file])
         for file in result.AdditionalInMaster:
             print("[+] " + str(file))
-            if self.OPTION_PRINT == True:
+            if self.OPTION_PRINT:
                 print("- cs: " + result.MasterChecksums[file])
         for file in result.MissingInMaster:
             print("[-] " + str(file))
-            if self.OPTION_PRINT == True:
+            if self.OPTION_PRINT:
                 print("- cs: " + result.CloneChecksums[file])
-
 
     def __printOverallResult__(self, res):
         if res:
