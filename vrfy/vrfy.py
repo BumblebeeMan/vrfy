@@ -502,32 +502,44 @@ class vrfyCli:
             bool:   True, when all executions of >>func<< returned PASS, else False.
         """
         # check if received strings are valid paths
+        # create lists of files and directories that are included in current path
+        filesM = filesC = dictsM = dictsC = []
         import os
-        if os.path.isdir(pathMaster) and os.path.isdir(pathClone):
-            # create lists of files and directories that are included in current path
+        if os.path.isdir(pathMaster):
             filesM = [entryA for entryA in os.listdir(pathMaster) if
                       not os.path.isdir(os.path.join(pathMaster, entryA))]
-            filesC = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
             dictsM = [entryDir for entryDir in os.listdir(pathMaster) if
                       os.path.isdir(os.path.join(pathMaster, entryDir))]
+        if os.path.isdir(pathClone):
+            filesC = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
+            dictsC = [entryDir for entryDir in os.listdir(pathClone) if
+                      os.path.isdir(os.path.join(pathClone, entryDir))]
 
+        combinedDicts = list(set(dictsM + dictsC))
+
+        if os.path.isdir(pathMaster) and os.path.isdir(pathClone):
+            print(pathMaster, end=" : ", flush=True)
             # execute requested operation
-            print("" + str(pathMaster), end=" : ", flush=True)
             resultObject = func(pathMaster, filesM, pathClone, filesC)
-            resultVerify = resultObject.Result
-            # ResultList.append(resultObject)
-            self.__printResult__(resultObject)
-
-            # jump into child directories, if recursive operation is requested
-            if self.OPTION_RECURSIVE:
-                for nextFolder in dictsM:
-                    resultVerify = self.__walker__(os.path.join(pathMaster, nextFolder),
-                                                   os.path.join(pathClone, nextFolder), func) & resultVerify
-
-            return resultVerify
         else:
-            # terminate, since paths are not pointing to valid directories
-            return False
+            if os.path.isdir(pathMaster):
+                print("[+] " + pathMaster, end=" : ", flush=True)
+                resultObject = vrfy.Result(False, pathMaster, additionalMaster=filesM, missingMaster=filesC)
+            if os.path.isdir(pathClone):
+                print("[-] " + pathClone, end=" : ", flush=True)
+                resultObject = vrfy.Result(False, pathClone, additionalMaster=filesM, missingMaster=filesC)
+        resultVerify = resultObject.Result
+        # ResultList.append(resultObject)
+        self.__printResult__(resultObject)
+
+        # jump into child directories, if recursive operation is requested
+        if self.OPTION_RECURSIVE:
+            for nextFolder in combinedDicts:
+                resultVerify = self.__walker__(os.path.join(pathMaster, nextFolder),
+                                               os.path.join(pathClone, nextFolder), func) & resultVerify
+
+        return resultVerify
+
 
     def __printResult__(self, result: vrfy.Result) -> None:
         if result.Result:
