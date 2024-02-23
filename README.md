@@ -26,7 +26,7 @@ or
 ```bash
 vrfy -m /path/of/master -c /path/of/clone -r
 ```
-or (checksums are printed to console)
+or (mismatched checksums are printed to console)
 ```bash
 vrfy -m /path/of/master -c /path/of/clone -r -p
 ```
@@ -50,7 +50,7 @@ Using option **-r** (recursive) all sub-directories are verified as well:
 ```bash
 vrfy -r -v /path/of/data
 ```
-Using option **-p** (print) all checksums are printed to console for further inspection:
+Using option **-p** (print) all mismatched checksums are printed to console for further inspection:
 ```bash
 vrfy -p -r -v /path/of/data
 ```
