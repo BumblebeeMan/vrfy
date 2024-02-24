@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-print("FoundCLI")
-
 from vrfy.vrfy import vrfy
+import os
 
 class vrfyCli:
-    import os
-    import subprocess
 
     # options
     GLOBAL_VERBOSITY = None
@@ -92,7 +89,6 @@ class vrfyCli:
         # cli option: vrfy
         elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
-            import os
             directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
@@ -180,7 +176,6 @@ class vrfyCli:
         # check if received strings are valid paths
         # create lists of files and directories that are included in current path
         filesM = filesC = dictsM = dictsC = []
-        import os
         if os.path.isdir(pathMaster):
             filesM = [entryA for entryA in os.listdir(pathMaster) if
                       not os.path.isdir(os.path.join(pathMaster, entryA))]
@@ -196,7 +191,14 @@ class vrfyCli:
         if os.path.isdir(pathMaster) and os.path.isdir(pathClone):
             print(pathMaster, end=" : ", flush=True)
             # execute requested operation
-            resultObject = func(pathMaster, filesM, pathClone, filesC)
+            from inspect import signature
+            numParam = len(signature(func).parameters)
+            if numParam == 2:
+                resultObject = func(pathMaster, pathClone)
+            elif numParam == 1:
+                resultObject = func(pathMaster)
+            else:
+                return False
         else:
             if os.path.isdir(pathMaster):
                 print("[+] " + pathMaster, end=" : ", flush=True)

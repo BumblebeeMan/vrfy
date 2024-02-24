@@ -14,8 +14,6 @@ setup(
     long_description_content_type='text/markdown',
 
     packages=['vrfy', 'vrfy.cli'],
-    #py_modules=["vrfy", "vrfyCli"],
-    #package_dir={"": "vrfy"},
 
     author="BumblebeeMan (Dennis Koerner)",
     author_email="dennis@bumblebeeman.dev",

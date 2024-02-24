@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os
+
 class vrfy:
     class Result:
         def __init__(self, result, path, missingMaster=[], additionalMaster=[], ChecksumMismatch=[],
@@ -11,8 +13,6 @@ class vrfy:
             self.MasterChecksums = masterChecksums
             self.CloneChecksums = cloneChecksums
 
-    import os
-    import subprocess
 
     VERSION_STR = "0.4.0"
     HASH_ERROR = "ERROR"
@@ -47,9 +47,9 @@ class vrfy:
         resultVerify = True
         expectation = expectedChecksum
         calcChecksum = self.__calcChecksum__(filePath)
-        path, filename = self.os.path.split(filePath)
+        path, filename = os.path.split(filePath)
         # no hex checksum provided, read sums.csv / *.sha256sums-file
-        if self.os.path.isfile(expectedChecksum):
+        if os.path.isfile(expectedChecksum):
             try:
                 sumsDict = self.__getChecksumsFromFile__(expectedChecksum)
                 expectation = sumsDict[filename]
@@ -67,26 +67,24 @@ class vrfy:
         return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors,
                            masterChecksums=masterHashDict, cloneChecksums=expHashDict)
 
-    def VerifyFilesAgainstChecksums(self, pathMaster: str, filesMaster: list,
-                                    pathClone: str = "", filesClone: list = None) -> Result:
+    def VerifyFilesAgainstChecksums(self, pathMaster: str) -> Result:
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
         Parameters:
             pathMaster (str): Path to directory whose files shall get verified.
-            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
-            pathClone (str): NOT USED! Included for compatibility reasons only.
-            filesClone (List[str]): NOT USED! Included for compatibility reasons only.
 
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
+        filesMaster = [entryB for entryB in os.listdir(pathMaster) if
+                       not os.path.isdir(os.path.join(pathMaster, entryB))]
         fileHashDict = dict()
         # check if checksum file is available, if not abort execution
         if "sums.csv" not in filesMaster and len(filesMaster) > 0:
             # calculate has values for additional files
             for file in filesMaster:
-                fileHashDict[file] = self.__calcChecksum__(self.os.path.join(pathMaster, file))
+                fileHashDict[file] = self.__calcChecksum__(os.path.join(pathMaster, file))
             return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster,
                                masterChecksums=fileHashDict)
 
@@ -113,7 +111,7 @@ class vrfy:
             # iterate through all files and compare their checksum with those stored in sums.csv
             for file in sumsDict.keys():
                 if file in filesMaster:
-                    checksumCalc = self.__calcChecksum__(self.os.path.join(pathMaster, file))
+                    checksumCalc = self.__calcChecksum__(os.path.join(pathMaster, file))
                     checksumSaved = sumsDict[file]
                     # save hashvalues for later analysis
                     fileHashDict[file] = checksumCalc
@@ -130,7 +128,7 @@ class vrfy:
 
             # calculate has values for additional files
             for file in missingItemsInSumsCSV:
-                fileHashDict[file] = self.__calcChecksum__(self.os.path.join(pathMaster, file))
+                fileHashDict[file] = self.__calcChecksum__(os.path.join(pathMaster, file))
 
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV,
                                additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
@@ -139,32 +137,30 @@ class vrfy:
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
 
-    def WriteChecksumFile(self, pathMaster: str, filesMaster: list,
-                          pathClone: str = "", filesClone: list = None) -> Result:
+    def WriteChecksumFile(self, pathMaster: str) -> Result:
         """
         Creates file sums.csv with checksums for files [filesMaster] in >>pathMaster<<.
 
         Parameters:
             pathMaster (str): Path to directory whose files shall get hashed and checksums stored in sums.csv.
-            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
-            pathClone (str): NOT USED! Included for compatibility reasons only.
-            filesClone (List[str]): NOT USED! Included for compatibility reasons only.
 
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
+        filesMaster = [entryB for entryB in os.listdir(pathMaster) if
+                       not os.path.isdir(os.path.join(pathMaster, entryB))]
         # create sums.csv, if directory contains files
         result = True
         hashMismatch = []
         if len(filesMaster) > 0:
             try:
-                f = open(self.os.path.join(pathMaster, "sums.csv"), "w")
+                f = open(os.path.join(pathMaster, "sums.csv"), "w")
                 # do not hash "sums.csv" itself
                 if "sums.csv" in filesMaster:
                     filesMaster.remove("sums.csv")
                 # iterate through all files of current directory and add their names and checksums to "sums.csv"
                 for file in filesMaster:
-                    hash_digest = self.__calcChecksum__(self.os.path.join(pathMaster, file))
+                    hash_digest = self.__calcChecksum__(os.path.join(pathMaster, file))
                     # only add files without checksum errors and trigger error condition, when checksum calculation
                     # failed
                     if hash_digest != self.HASH_ERROR:
@@ -177,7 +173,7 @@ class vrfy:
                 return self.Result(result=False, path=pathMaster, ChecksumMismatch=hashMismatch)
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
 
-    def VerifyFiles(self, pathMaster: str, filesMaster: list, pathClone: str, filesClone: list) -> Result:
+    def VerifyFiles(self, pathMaster: str, pathClone: str) -> Result:
         """
         Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file
         checksums.
@@ -185,13 +181,13 @@ class vrfy:
         Parameters:
             pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
                                 a baseline for comparison.
-            filesMaster (List[str]): Names of all files that are included in the directory >>pathMaster<<.
             pathClone (str): Path to clone directory whose files shall get verified against the master copy.
-            filesClone (List[str]): Names of all files that are included in the directory >>pathClone<<.
 
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
+        filesMaster = [entryB for entryB in os.listdir(pathMaster) if not os.path.isdir(os.path.join(pathMaster, entryB))]
+        filesClone = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
         result = True
         masterHashDict = dict()
         cloneHashDict = dict()
@@ -215,8 +211,8 @@ class vrfy:
                     result = False
                 else:
                     # calculate checksums for master and clone file
-                    masterFilePath = self.os.path.join(pathMaster, fileNameMaster)
-                    cloneFilePath = self.os.path.join(pathClone, fileNameMaster)
+                    masterFilePath = os.path.join(pathMaster, fileNameMaster)
+                    cloneFilePath = os.path.join(pathClone, fileNameMaster)
                     checksumMaster = self.__calcChecksum__(masterFilePath)
                     checksumClone = self.__calcChecksum__(cloneFilePath)
                     # save hashvalues for later analysis
@@ -268,8 +264,8 @@ class vrfy:
         Returns:
             dict:   dict[filename] = hash digest.
         """
-        path, filename = self.os.path.split(filePathName)
-        name, extension = self.os.path.splitext(self.os.path.basename(filePathName))
+        path, filename = os.path.split(filePathName)
+        name, extension = os.path.splitext(os.path.basename(filePathName))
         if extension == ".sha256sum":
             return self.__readSha256SumFile__(path, filename)
         elif filename == "sums.csv":
@@ -291,7 +287,7 @@ class vrfy:
         sumsDict = dict()
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         try:
-            f = open(self.os.path.join(filePath, fileName), "r")
+            f = open(os.path.join(filePath, fileName), "r")
             for line in f.readlines():
                 entry = line.replace("\n", "").split("  ")
                 sumsDict[entry[1]] = entry[0]
@@ -314,7 +310,7 @@ class vrfy:
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         sumsDict = dict()
         try:
-            f = open(self.os.path.join(filePath, "sums.csv"), "r")
+            f = open(os.path.join(filePath, "sums.csv"), "r")
             for line in f.readlines():
                 entry = line.replace("\n", "").split(";")
                 # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
