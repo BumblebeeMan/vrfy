@@ -13,18 +13,17 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
 
-    py_modules=["vrfy"],
-    package_dir={'': 'vrfy'},
+    packages=['vrfy', 'vrfy.cli'],
+    #py_modules=["vrfy", "vrfyCli"],
+    #package_dir={"": "vrfy"},
 
     author="BumblebeeMan (Dennis Koerner)",
     author_email="dennis@bumblebeeman.dev",
     url="https://github.com/BumblebeeMan/vrfy",
 
-    # install_requires=["requests >= 2.30.0", "psutil >= 5.9.0"],
-
     entry_points={
         'console_scripts': [
-            'vrfy = vrfy:main',
+            'vrfy = vrfy.cli.vrfyCli:main',
         ],
     },
 
