@@ -81,7 +81,9 @@ vrfy -p -f /path/of/file/filename
 ### Getting started
 Example to read version of installed vrfy-package:
 ```python
-from vrfy import vrfy
-vf = vrfy.vrfy()
-vf.GetVersion()
+from vrfy.vrfy import vrfy
+vf = vrfy()
+versionStr = vf.GetVersion()
+vrfyResult = vf.VerifyFile("filePath", "expectedChecksum")
+
 ```
