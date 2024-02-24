@@ -2,7 +2,7 @@
 
 print("FoundCLI")
 
-from vrfy import vrfy
+from vrfy.vrfy import vrfy
 
 class vrfyCli:
     import os
@@ -44,7 +44,7 @@ class vrfyCli:
         """
         # decode options from argument list
         directories = []
-        vf = vrfy.vrfy()
+        vf = vrfy()
         for index in range(0, len(arguments)):
             if arguments[index] == self.RECURSIVE:
                 self.OPTION_RECURSIVE = True
