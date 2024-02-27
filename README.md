@@ -18,17 +18,17 @@ pip install vrfy --user
  
 ## Usage the CLI
 ### 1. Verifing that two directories are identical
-Verifing that the contents of '/path/of/clone' are identical to those of '/path/of/master'. For example, '/path/of/master' might be a local backup, whereas '/path/of/clone' might be loaded from cloud storage. 
+Verifing that the contents of '/path/of/backup' are identical to those of '/path/of/master'. For example, '/path/of/master' might be a local backup, whereas '/path/of/backup' might be loaded from cloud storage. 
 ```bash
-vrfy /path/of/master /path/of/clone
+vrfy /path/of/master /path/of/backup
 ```
 or
 ```bash
-vrfy -m /path/of/master -c /path/of/clone -r
+vrfy -m /path/of/master -b /path/of/backup -r
 ```
 or (mismatched checksums are printed to console)
 ```bash
-vrfy -m /path/of/master -c /path/of/clone -r -p
+vrfy -m /path/of/master -b /path/of/backup -r -p
 ```
 
 ### 2. Storing checksums for future verification
@@ -70,11 +70,15 @@ Where "expectedChecksum" can be one of the following:
 ### 4. Other CLI options
 Display version of vrfy:
 ```bash
-vrfy -version
+vrfy --version
 ```
 Display checksum for given file:
 ```bash
 vrfy -p -f /path/of/file/filename
+```
+Display help:
+```bash
+vrfy -h
 ```
 
 ## Using the python package
@@ -85,5 +89,4 @@ from vrfy.vrfy import vrfy
 vf = vrfy()
 versionStr = vf.GetVersion()
 vrfyResult = vf.VerifyFile("filePath", "expectedChecksum")
-
 ```

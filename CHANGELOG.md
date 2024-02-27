@@ -5,14 +5,17 @@ All important changes to vrfy will be documented here.
 ## [0.4.x]
 
 ### Added
-- n/a
+- Added command line help menu "vrfy -h".
 
 ### Changed
-- Code refactor: Separate CLI and core functionality, introduce data type for result post-processing, and code simplification
-- Moved cli from vrfy into own class
+- Code refactor: Separate CLI and core functionality, introduce data type for result post-processing, and code simplification.
+- Moved cli from vrfy into own class.
+- Cli option: vrfy /path/of/master /path/of/backup no longer supported.
+- Renamed "clone" to "backup" for improved clarity.
+- Changed direction verification option -c to -b.
 
 ### Fixed
-- n/a
+- Fixed bug where directories may be dropped in directory verification.
 
 ## [0.3.1]
 

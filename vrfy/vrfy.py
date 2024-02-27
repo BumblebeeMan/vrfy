@@ -4,14 +4,14 @@ import os
 class vrfy:
     class Result:
         def __init__(self, result, path, missingMaster=[], additionalMaster=[], ChecksumMismatch=[],
-                     masterChecksums=dict(), cloneChecksums=dict()):
+                     masterChecksums=dict(), backupChecksums=dict()):
             self.Result = result
             self.Path = path
             self.MissingInMaster = missingMaster
             self.AdditionalInMaster = additionalMaster
             self.ChecksumMismatch = ChecksumMismatch
             self.MasterChecksums = masterChecksums
-            self.CloneChecksums = cloneChecksums
+            self.BackupChecksums = backupChecksums
 
 
     VERSION_STR = "0.4.0"
@@ -65,7 +65,7 @@ class vrfy:
             checksumErrors.append(filename)
 
         return self.Result(result=resultVerify, path=path, ChecksumMismatch=checksumErrors,
-                           masterChecksums=masterHashDict, cloneChecksums=expHashDict)
+                           masterChecksums=masterHashDict, backupChecksums=expHashDict)
 
     def VerifyFilesAgainstChecksums(self, pathMaster: str) -> Result:
         """
@@ -118,7 +118,7 @@ class vrfy:
                     # verify calculated checksum against the one stored in sums.csv
                     if checksumCalc == checksumSaved:
                         pass
-                    elif checksumCalc != checksumSaved:
+                    else:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         checksumErrors.append(file)
                         resultVerify = False
@@ -132,7 +132,7 @@ class vrfy:
 
             return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV,
                                additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
-                               masterChecksums=fileHashDict, cloneChecksums=sumsDict)
+                               masterChecksums=fileHashDict, backupChecksums=sumsDict)
 
         # return with True, in case no files needed to be verifed
         return self.Result(result=True, path=pathMaster)
@@ -173,61 +173,61 @@ class vrfy:
                 return self.Result(result=False, path=pathMaster, ChecksumMismatch=hashMismatch)
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
 
-    def VerifyFiles(self, pathMaster: str, pathClone: str) -> Result:
+    def VerifyFiles(self, pathMaster: str, pathBackup: str) -> Result:
         """
-        Verifies the contents of directory "pathMaster" against the contents of "pathClone" based on the respective file
+        Verifies the contents of directory "pathMaster" against the contents of "pathBackup" based on the respective file
         checksums.
 
         Parameters:
             pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
                                 a baseline for comparison.
-            pathClone (str): Path to clone directory whose files shall get verified against the master copy.
+            pathBackup (str): Path to backup directory whose files shall get verified against the master copy.
 
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
         filesMaster = [entryB for entryB in os.listdir(pathMaster) if not os.path.isdir(os.path.join(pathMaster, entryB))]
-        filesClone = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
+        filesBackup = [entryB for entryB in os.listdir(pathBackup) if not os.path.isdir(os.path.join(pathBackup, entryB))]
         result = True
         masterHashDict = dict()
-        cloneHashDict = dict()
-        missingItemsInPathClone = []
-        additionalItemsInPathClone = []
+        backupHashDict = dict()
+        missingItemsInPathBackup = []
+        additionalItemsInPathBackup = []
         checksumErrors = []
         # start file verification, when files are included in directory
         if len(filesMaster) > 0:
-            # search for missing or additional files in master and clone, and trigger error condition
-            missingItemsInPathClone = [i for i in filesMaster if i not in filesClone]
-            additionalItemsInPathClone = [i for i in filesClone if i not in filesMaster]
-            if len(missingItemsInPathClone) != 0:
+            # search for missing or additional files in master and backup, and trigger error condition
+            missingItemsInPathBackup = [i for i in filesMaster if i not in filesBackup]
+            additionalItemsInPathBackup = [i for i in filesBackup if i not in filesMaster]
+            if len(missingItemsInPathBackup) != 0:
                 result = False
-            if len(additionalItemsInPathClone) != 0:
+            if len(additionalItemsInPathBackup) != 0:
                 result = False
 
-            # iterate through all files of master directory and verify their checksums to those of the clone directory
+            # iterate through all files of master directory and verify their checksums to those of the backup directory
             for fileNameMaster in filesMaster:
-                # master file is not included on clone directory -> trigger error condition
-                if fileNameMaster not in filesClone:
+                # master file is not included on backup directory -> trigger error condition
+                if fileNameMaster not in filesBackup:
                     result = False
                 else:
-                    # calculate checksums for master and clone file
+                    # calculate checksums for master and backup file
                     masterFilePath = os.path.join(pathMaster, fileNameMaster)
-                    cloneFilePath = os.path.join(pathClone, fileNameMaster)
+                    backupFilePath = os.path.join(pathBackup, fileNameMaster)
                     checksumMaster = self.__calcChecksum__(masterFilePath)
-                    checksumClone = self.__calcChecksum__(cloneFilePath)
+                    checksumBackup = self.__calcChecksum__(backupFilePath)
                     # save hashvalues for later analysis
                     masterHashDict[fileNameMaster] = checksumMaster
-                    cloneHashDict[fileNameMaster] = checksumClone
+                    backupHashDict[fileNameMaster] = checksumBackup
                     # verify that both match and both are NOT "HASH_ERROR"
-                    if checksumClone == checksumMaster and (checksumMaster != self.HASH_ERROR):
+                    if checksumBackup == checksumMaster and (checksumMaster != self.HASH_ERROR):
                         pass
                     else:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         checksumErrors.append(str(fileNameMaster))
                         result = False
-        return self.Result(result=result, path=pathMaster, missingMaster=additionalItemsInPathClone,
-                           additionalMaster=missingItemsInPathClone, ChecksumMismatch=checksumErrors,
-                           masterChecksums=masterHashDict, cloneChecksums=cloneHashDict)
+        return self.Result(result=result, path=pathMaster, missingMaster=additionalItemsInPathBackup,
+                           additionalMaster=missingItemsInPathBackup, ChecksumMismatch=checksumErrors,
+                           masterChecksums=masterHashDict, backupChecksums=backupHashDict)
 
     def __calcChecksum__(self, filePath: str) -> str:
         """

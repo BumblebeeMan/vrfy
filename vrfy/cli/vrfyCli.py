@@ -2,36 +2,18 @@
 
 from vrfy.vrfy import vrfy
 import os
+import argparse
+from argparse import RawTextHelpFormatter
+import pathlib
+
 
 class vrfyCli:
-
-    # options
-    GLOBAL_VERBOSITY = None
-    CREATE_CSV: str = "-c"
-    VERIFY_CSV: str = "-v"
-    RECURSIVE: str = "-r"
-    VERSION: str = "-version"
-    PRINT: str = "-p"
-    FILE: str = "-f"
-    CHECKSUM: str = "-cs"
-    MASTER_DIR: str = "-m"
-    CLONE_DIR: str = "-c"
-    OPTION_RECURSIVE = False
-    OPTION_CREATE_CSV: bool = False
-    OPTION_VERIFY_CSV: bool = False
-    OPTION_VERIFY_VERSION: bool = False
-    OPTION_PRINT: bool = False
-    OPTION_FILE: int = -1
-    OPTION_CHECKSUM: int = -1
-    OPTION_MASTER_DIR: int = -1
-    OPTION_CLONE_DIR: int = -1
-
     def __init__(self):
         pass
 
     def parseArgumentsAndExecute(self, arguments: list) -> int:
         """
-        Decodes programm arguments and executes required methods.
+        Decodes program arguments and executes required methods.
 
         Parameters:
             arguments (List[str]): List of arguments provided by user.
@@ -40,91 +22,103 @@ class vrfyCli:
             int:    0, when all execution steps resulted in PASS, else 1.
         """
         # decode options from argument list
-        directories = []
-        vf = vrfy()
-        for index in range(0, len(arguments)):
-            if arguments[index] == self.RECURSIVE:
-                self.OPTION_RECURSIVE = True
-            if arguments[index] == self.CREATE_CSV:
-                self.OPTION_CREATE_CSV = True
-            if arguments[index] == self.VERIFY_CSV:
-                self.OPTION_VERIFY_CSV = True
-            if self.os.path.isdir(arguments[index]):
-                directories.append(arguments[index])
-            if arguments[index] == self.VERSION:
-                self.OPTION_VERIFY_VERSION = True
-            if arguments[index] == self.PRINT:
-                self.OPTION_PRINT = True
-            if arguments[index] == self.CHECKSUM:
-                if (len(arguments) - 2) <= index + 1:  # index + 1 shall be second to last or earlier
-                    self.OPTION_CHECKSUM = index + 1
-                else:
-                    print("Error: Option '" + str(self.CHECKSUM) + "' provided, but '" + str(
-                        self.CHECKSUM) + "' is not followed by checksum to test.")
-            if arguments[index] == self.FILE:
-                if self.os.path.isfile(arguments[index + 1]):
-                    self.OPTION_FILE = index + 1
-                else:
-                    print("Error: Option '" + str(self.FILE) + "' provided, but '" + str(
-                        arguments[index + 1]) + "' is no file.")
-            if arguments[index] == self.MASTER_DIR:
-                if self.os.path.isdir(arguments[index + 1]):
-                    self.OPTION_MASTER_DIR = index + 1
-                else:
-                    print("Error: Option '" + str(self.MASTER_DIR) + "' provided, but '" + str(
-                        arguments[index + 1]) + "' is no directory.")
-            if arguments[index] == self.CLONE_DIR:
-                if self.os.path.isdir(arguments[index + 1]):
-                    self.OPTION_CLONE_DIR = index + 1
-                else:
-                    print("Error: Option '" + str(self.CLONE_DIR) + "' provided, but '" + str(
-                        arguments[index + 1]) + "' is no directory.")
+        parser = argparse.ArgumentParser(
+            description="Verify with VRFY: Ensure the integrity of your file copies, hash by hash!",
+            formatter_class=RawTextHelpFormatter)
+        parser.add_argument("-ver", "--version", action="store_true", help="Print version string")
+        parser.add_argument("-r", "--recursive", action="store_true", help="Recursive operation")
+        parser.add_argument("-p", "--print", action="store_true", help="Print mismatched checksums")
 
+        filevrfy = parser.add_argument_group('File verification',
+                                             'Verify a single file against an expected')
+        filevrfy.add_argument("-f", "--file", type=argparse.FileType('rb'), help="File to verify")
+        filevrfy.add_argument("-cs", "--checksum", type=str,
+                              help="Checksum string or sums.csv/*.sha256-file")
+
+        csvrfy = parser.add_argument_group('Checksum verification', 'Verify files against stored checksums.'
+                                            '\nError indicators:'
+                                            '\n\t[+]: Additional files in directory that are missing in checksum list.'
+                                            '\n\t[-]: Vice versa.'
+                                            '\n\t[MISMATCH]: Checksums mismatch.')
+        mcsvrfy = csvrfy.add_mutually_exclusive_group()  # required=True)
+        mcsvrfy.add_argument("-v", "--verify", type=pathlib.Path, dest='VERIFY_PATH',
+                               help="Path to files for verification")
+        mcsvrfy.add_argument("-c", "--create", type=pathlib.Path, dest='CREATE_PATH',
+                               help="Path to files to create checksums for")
+
+        dirvrfy = parser.add_argument_group('Directory verification', 'Verify files against a known good master copy.'
+                                            '\nError indicators:'
+                                            '\n\t[+]: Additional files/directories in master that is missing in backup. '
+                                            '\n\t[-]: Vice versa.'
+                                            '\n\t[MISMATCH]: Checksums mismatch.')
+        dirvrfy.add_argument("-m", "--master", type=pathlib.Path, dest='MASTER_PATH', help="Path to master directory")
+        dirvrfy.add_argument("-b", "--backup", type=pathlib.Path, dest='BACKUP_PATH', 
+                             help="Path to backup directory")
+
+        args = parser.parse_args()
+
+        # mutually exclude directory and file verification mode
+        f = (args.file is not None or args.checksum is not None)
+        d = (args.MASTER_PATH is not None or args.BACKUP_PATH is not None)
+        vp = (args.VERIFY_PATH is not None)
+        if (f + d + vp) > 1:
+            print("ERROR: Verification modes can NOT be mixed.")
+            return 1
+
+        # check parameters for file verification mode
+        if (args.MASTER_PATH is not None and args.BACKUP_PATH is None) or (
+                args.MASTER_PATH is None and args.BACKUP_PATH is not None):
+            print("ERROR: Parameter missing for 'directory verification'.")
+            return 1
+
+        self.OPTION_RECURSIVE = args.recursive
+        self.OPTION_PRINT = args.print
+
+        vf = vrfy()
         # execute decoded options
         executionResult = False
+
         # cli option: vrfy -version
-        if self.OPTION_VERIFY_VERSION:
+        if args.version:
             print("vrfy version: " + str(vf.GetVersion()))
 
         # cli option: vrfy
-        elif len(arguments) == 0:
+        if len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
-            directories.append(os.getcwd())
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True
             # verify sums
             print("Verifying current working directory against checksums:")
-            executionResult = self.__walker__(directories[0], directories[0], vf.VerifyFilesAgainstChecksums)
+            executionResult = self.__walker__(os.getcwd(), os.getcwd(), vf.VerifyFilesAgainstChecksums)
             self.__printOverallResult__(executionResult)
 
         # cli option: vrfy <<directory>> <<directory>>
-        elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
-            # only two paths are provided -> first: golden master / second: clone/copy to be verified
-            print("Verifying directories:")
-            print("Master: " + str(arguments[0]))
-            print("Clone: " + str(arguments[1]))
-            self.OPTION_RECURSIVE = True
-            executionResult = self.__walker__(arguments[0], arguments[1], vf.VerifyFiles)
-            self.__printOverallResult__(executionResult)
+        # elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
+        #    # only two paths are provided -> first: golden master / second: backup/copy to be verified
+        #    print("Verifying directories:")
+        #    print("Master: " + str(arguments[0]))
+        #    print("Backup: " + str(arguments[1]))
+        #    self.OPTION_RECURSIVE = True
+        #    executionResult = self.__walker__(arguments[0], arguments[1], vf.VerifyFiles)
+        #    self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -m <<directory>> -c <<directory>>
-        elif 0 <= self.OPTION_MASTER_DIR <= len(arguments) - 1 and 0 <= self.OPTION_CLONE_DIR <= len(arguments) - 1:
+        elif args.MASTER_PATH is not None and args.BACKUP_PATH is not None:
             print("Verifying directories:")
-            print("Master: " + str(arguments[self.OPTION_MASTER_DIR]))
-            print("Clone: " + str(arguments[self.OPTION_CLONE_DIR]))
+            print("Master: " + str(args.MASTER_PATH))
+            print("Backup: " + str(args.BACKUP_PATH))
             self.OPTION_RECURSIVE = True
-            executionResult = self.__walker__(arguments[self.OPTION_MASTER_DIR], arguments[self.OPTION_CLONE_DIR],
-                                              vf.VerifyFiles)
+            executionResult = self.__walker__(str(args.MASTER_PATH), str(args.BACKUP_PATH), vf.VerifyFiles)
             self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
-        elif 0 <= self.OPTION_FILE <= len(arguments) - 1:
-            if 0 <= self.OPTION_CHECKSUM <= len(arguments) - 1:
-                res = vf.VerifyFile(arguments[self.OPTION_FILE], arguments[self.OPTION_CHECKSUM])
+        elif args.file is not None:
+            if args.checksum is not None:
+                res = vf.VerifyFile(args.file.name, args.checksum)
             else:
-                res = vf.VerifyFile(arguments[self.OPTION_FILE], "")
+                res = vf.VerifyFile(args.file.name, "")
             executionResult = res.Result
-            path, filename = self.os.path.split(arguments[self.OPTION_FILE])
+            path, filename = os.path.split(args.file.name)
             calcChecksum = res.MasterChecksums[filename]
             if self.OPTION_PRINT:
                 print(calcChecksum + "  " + str(filename))
@@ -132,26 +126,20 @@ class vrfyCli:
                 self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -c <<directory>>
-        elif self.OPTION_CREATE_CSV:
-            if len(directories) == 1:
-                # create sums
-                print("Creating checksums for files:")
-                executionResult = self.__walker__(directories[0], directories[0], vf.WriteChecksumFile)
-                self.__printOverallResult__(executionResult)
-            else:
-                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(
-                    len(directories)) + "' directories are given (required: 1).")
+        elif args.CREATE_PATH is not None:
+            # create sums
+            print("Creating checksums for files:")
+            executionResult = self.__walker__(str(args.CREATE_PATH), str(args.CREATE_PATH), vf.WriteChecksumFile)
+            self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -v <<directory>>
-        elif self.OPTION_VERIFY_CSV:
-            if len(directories) == 1:
-                # verify sums
-                print("Verifying files against checksums:")
-                executionResult = self.__walker__(directories[0], directories[0], vf.VerifyFilesAgainstChecksums)
-                self.__printOverallResult__(executionResult)
-            else:
-                print("Error: Option '" + str(self.VERIFY_CSV) + "' provided, but '" + str(
-                    len(directories)) + "' directories are given (required: 1).")
+        elif args.VERIFY_PATH is not None:
+            # verify sums
+            print("Verifying files against checksums:")
+            executionResult = self.__walker__(str(args.VERIFY_PATH), str(args.VERIFY_PATH),
+                                              vf.VerifyFilesAgainstChecksums)
+            self.__printOverallResult__(executionResult)
+
         else:
             print("No valid argument setting found!")
             return 1
@@ -160,14 +148,14 @@ class vrfyCli:
         else:
             return 1
 
-    def __walker__(self, pathMaster: str, pathClone: str, func) -> bool:
+    def __walker__(self, pathMaster: str, pathBackup: str, func) -> bool:
         """
         Verifies the contents of directory "pathMaster" against the included checksums in sums.csv.
 
         Parameters:
             pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
                                 a baseline for comparison. .
-            pathClone (str): Path to clone directory whose files shall get verified against the master copy.
+            pathBackup (str): Path to backup directory whose files shall get verified against the master copy.
             func (callable) -- Function that gets executed on the respective folder.
 
         Returns:
@@ -181,31 +169,31 @@ class vrfyCli:
                       not os.path.isdir(os.path.join(pathMaster, entryA))]
             dictsM = [entryDir for entryDir in os.listdir(pathMaster) if
                       os.path.isdir(os.path.join(pathMaster, entryDir))]
-        if os.path.isdir(pathClone):
-            filesC = [entryB for entryB in os.listdir(pathClone) if not os.path.isdir(os.path.join(pathClone, entryB))]
-            dictsC = [entryDir for entryDir in os.listdir(pathClone) if
-                      os.path.isdir(os.path.join(pathClone, entryDir))]
+        if os.path.isdir(pathBackup):
+            filesC = [entryB for entryB in os.listdir(pathBackup) if not os.path.isdir(os.path.join(pathBackup, entryB))]
+            dictsC = [entryDir for entryDir in os.listdir(pathBackup) if
+                      os.path.isdir(os.path.join(pathBackup, entryDir))]
 
         combinedDicts = list(set(dictsM + dictsC))
 
-        if os.path.isdir(pathMaster) and os.path.isdir(pathClone):
+        if os.path.isdir(pathMaster) and os.path.isdir(pathBackup):
             print(pathMaster, end=" : ", flush=True)
             # execute requested operation
             from inspect import signature
             numParam = len(signature(func).parameters)
             if numParam == 2:
-                resultObject = func(pathMaster, pathClone)
+                resultObject = func(pathMaster, pathBackup)
             elif numParam == 1:
-                resultObject = func(pathMaster)
+                resultObject = func(pathBackup)
             else:
                 return False
         else:
             if os.path.isdir(pathMaster):
                 print("[+] " + pathMaster, end=" : ", flush=True)
                 resultObject = vrfy.Result(False, pathMaster, additionalMaster=filesM, missingMaster=filesC)
-            if os.path.isdir(pathClone):
-                print("[-] " + pathClone, end=" : ", flush=True)
-                resultObject = vrfy.Result(False, pathClone, additionalMaster=filesM, missingMaster=filesC)
+            if os.path.isdir(pathBackup):
+                print("[-] " + pathBackup, end=" : ", flush=True)
+                resultObject = vrfy.Result(False, pathBackup, additionalMaster=filesM, missingMaster=filesC)
         resultVerify = resultObject.Result
         # ResultList.append(resultObject)
         self.__printResult__(resultObject)
@@ -214,10 +202,9 @@ class vrfyCli:
         if self.OPTION_RECURSIVE:
             for nextFolder in combinedDicts:
                 resultVerify = self.__walker__(os.path.join(pathMaster, nextFolder),
-                                               os.path.join(pathClone, nextFolder), func) & resultVerify
+                                               os.path.join(pathBackup, nextFolder), func) & resultVerify
 
         return resultVerify
-
 
     def __printResult__(self, result) -> None:
         if result.Result:
@@ -228,7 +215,7 @@ class vrfyCli:
             print("[MISMATCH] " + str(file))
             if self.OPTION_PRINT:
                 print("- Master: " + result.MasterChecksums[file])
-                print("- Clone: " + result.CloneChecksums[file])
+                print("- Backup: " + result.BackupChecksums[file])
         for file in result.AdditionalInMaster:
             print("[+] " + str(file))
             if self.OPTION_PRINT:
@@ -236,7 +223,7 @@ class vrfyCli:
         for file in result.MissingInMaster:
             print("[-] " + str(file))
             if self.OPTION_PRINT:
-                print("- cs: " + result.CloneChecksums[file])
+                print("- cs: " + result.BackupChecksums[file])
 
     def __printOverallResult__(self, res: bool):
         if res:
