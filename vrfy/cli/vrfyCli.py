@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-
 from vrfy.vrfy import vrfy
+import sys
 import os
 import argparse
 from argparse import RawTextHelpFormatter
 import pathlib
+from inspect import signature
 
 
 class vrfyCli:
@@ -179,7 +180,6 @@ class vrfyCli:
         if os.path.isdir(pathMaster) and os.path.isdir(pathBackup):
             print(pathMaster, end=" : ", flush=True)
             # execute requested operation
-            from inspect import signature
             numParam = len(signature(func).parameters)
             if numParam == 2:
                 resultObject = func(pathMaster, pathBackup)
@@ -233,7 +233,6 @@ class vrfyCli:
 
 
 def main():
-    import sys
     verify = vrfyCli()
     sys.exit(verify.parseArgumentsAndExecute(sys.argv[1:]))
 

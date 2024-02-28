@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import hashlib
 
 
 class vrfy:
@@ -241,7 +242,6 @@ class vrfy:
         Returns:
             str: Hash digest.
         """
-        import hashlib
         sha256_hash = hashlib.sha256()
         try:
             with open(filePath, 'rb') as f:
