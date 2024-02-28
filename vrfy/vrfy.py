@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 
+
 class vrfy:
     class Result:
         def __init__(self, result, path, missingMaster=[], additionalMaster=[], ChecksumMismatch=[],
@@ -154,29 +155,28 @@ class vrfy:
         hashMismatch = []
         if len(filesMaster) > 0:
             try:
-                f = open(os.path.join(pathMaster, "sums.csv"), "w")
-                # do not hash "sums.csv" itself
-                if "sums.csv" in filesMaster:
-                    filesMaster.remove("sums.csv")
-                # iterate through all files of current directory and add their names and checksums to "sums.csv"
-                for file in filesMaster:
-                    hash_digest = self.__calcChecksum__(os.path.join(pathMaster, file))
-                    # only add files without checksum errors and trigger error condition, when checksum calculation
-                    # failed
-                    if hash_digest != self.HASH_ERROR:
-                        f.write(str(file) + ";" + str(hash_digest) + "\n")
-                    else:
-                        result = False
-                        hashMismatch.append(str(file))
-                f.close()
-            except Exception:
+                with open(os.path.join(pathMaster, "sums.csv"), "w") as f:
+                    # do not hash "sums.csv" itself
+                    if "sums.csv" in filesMaster:
+                        filesMaster.remove("sums.csv")
+                    # iterate through all files of current directory and add their names and checksums to "sums.csv"
+                    for file in filesMaster:
+                        hash_digest = self.__calcChecksum__(os.path.join(pathMaster, file))
+                        # only add files without checksum errors and trigger error condition, when checksum calculation
+                        # failed
+                        if hash_digest != self.HASH_ERROR:
+                            f.write(str(file) + ";" + str(hash_digest) + "\n")
+                        else:
+                            result = False
+                            hashMismatch.append(str(file))
+            except OSError:
                 return self.Result(result=False, path=pathMaster, ChecksumMismatch=hashMismatch)
         return self.Result(result=result, path=pathMaster, ChecksumMismatch=hashMismatch)
 
     def VerifyFiles(self, pathMaster: str, pathBackup: str) -> Result:
         """
-        Verifies the contents of directory "pathMaster" against the contents of "pathBackup" based on the respective file
-        checksums.
+        Verifies the contents of directory "pathMaster" against the contents of "pathBackup" based on the respective 
+        file checksums.
 
         Parameters:
             pathMaster (str): Path to the master directory whose contents are considered valid and unchanged, serving as
@@ -186,8 +186,10 @@ class vrfy:
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
-        filesMaster = [entryB for entryB in os.listdir(pathMaster) if not os.path.isdir(os.path.join(pathMaster, entryB))]
-        filesBackup = [entryB for entryB in os.listdir(pathBackup) if not os.path.isdir(os.path.join(pathBackup, entryB))]
+        filesMaster = [entryB for entryB in os.listdir(pathMaster) if
+                       not os.path.isdir(os.path.join(pathMaster, entryB))]
+        filesBackup = [entryB for entryB in os.listdir(pathBackup) if
+                       not os.path.isdir(os.path.join(pathBackup, entryB))]
         result = True
         masterHashDict = dict()
         backupHashDict = dict()
@@ -242,13 +244,13 @@ class vrfy:
         import hashlib
         sha256_hash = hashlib.sha256()
         try:
-            with open(filePath, 'rb') as file:
+            with open(filePath, 'rb') as f:
                 while True:
-                    block = file.read(8192)
+                    block = f.read(8192)
                     if not block:
                         break
                     sha256_hash.update(block)
-        except Exception:
+        except OSError:
             # print("ERROR: Unable to calculate SHA256 hash.")
             return self.HASH_ERROR
         return str(sha256_hash.hexdigest())
@@ -287,12 +289,11 @@ class vrfy:
         sumsDict = dict()
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         try:
-            f = open(os.path.join(filePath, fileName), "r")
-            for line in f.readlines():
-                entry = line.replace("\n", "").split("  ")
-                sumsDict[entry[1]] = entry[0]
-            f.close()
-        except IOError:
+            with open(os.path.join(filePath, fileName), "r") as f:
+                for line in f.readlines():
+                    entry = line.replace("\n", "").split("  ")
+                    sumsDict[entry[1]] = entry[0]
+        except OSError:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             return dict()
         return sumsDict
@@ -310,15 +311,14 @@ class vrfy:
         # read and decode sums.csv into dictionary sumsDict[<<fileName>>] = <<hash digest>>
         sumsDict = dict()
         try:
-            f = open(os.path.join(filePath, "sums.csv"), "r")
-            for line in f.readlines():
-                entry = line.replace("\n", "").split(";")
-                # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
-                if entry[1][:2] == "b'" and entry[1][-1] == "'":
-                    entry[1] = entry[1][2:-1]
-                sumsDict[entry[0]] = entry[1]
-            f.close()
-        except IOError:
+            with open(os.path.join(filePath, "sums.csv"), "r") as f:
+                for line in f.readlines():
+                    entry = line.replace("\n", "").split(";")
+                    # compatibility layer for legacy sums.csv, where hash digest started with "b'" and ended with "'"
+                    if entry[1][:2] == "b'" and entry[1][-1] == "'":
+                        entry[1] = entry[1][2:-1]
+                    sumsDict[entry[0]] = entry[1]
+        except OSError:
             # except file errors, and close verification with FAIL (i.e. "False" result)
             return dict()
         return sumsDict
