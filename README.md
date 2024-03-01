@@ -83,10 +83,33 @@ vrfy -h
 
 ## Using the python package
 ### Getting started
-Example to read version of installed vrfy-package:
 ```python
 from vrfy.vrfy import vrfy
 vf = vrfy()
+
+# Get version string
 versionStr = vf.GetVersion()
-vrfyResult = vf.VerifyFile("filePath", "expectedChecksum")
+
+# Verify a single file to an expected checksum
+Result = vf.VerifyFile("/path/and/fileName.xyz", "expectedChecksum")
+
+# Verify contents of a directory to stored checksums
+Result = VerifyFilesAgainstChecksums("path/to/directory")
+
+# Create/store checksum file for later file verification
+Result = WriteChecksumFile("path/to/directory")
+
+# Verify that files within master and backup directories are identical
+Result = VerifyFiles("path/to/directory/master", "path/to/directory/backup")
+```
+where
+```python
+class Result:
+    self.Result: bool               # Determines whether operation was successful (True) or not (False).
+    self.Path: str                  # Path the result object corresponds to. 
+    self.MissingInMaster: list      # List of file names that are missing in master directory, but are included in backup / checksum list.
+    self.AdditionalInMaster: list   # List of file names that are missing in backup directory / checksum list, but are included in master.
+    self.ChecksumMismatch: list     # List of files with mismachting checksums.
+    self.MasterChecksums: dict      # Dictionary of files within master directory and their checksums.
+    self.BackupChecksums: dict      # Dictionary of files within backup directory and their checksums.
 ```

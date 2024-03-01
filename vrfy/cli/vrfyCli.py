@@ -39,7 +39,7 @@ class vrfyCli:
         csvrfy = parser.add_argument_group('Checksum verification', 'Verify files against stored checksums.'
                                             '\nError indicators:'
                                             '\n\t[+]: Additional files in directory that are missing in checksum list.'
-                                            '\n\t[-]: Vice versa.'
+                                            '\n\t[-]: Files that are included in checksum list, but NOT in directory.'
                                             '\n\t[MISMATCH]: Checksums mismatch.')
         mcsvrfy = csvrfy.add_mutually_exclusive_group()  # required=True)
         mcsvrfy.add_argument("-v", "--verify", type=pathlib.Path, dest='VERIFY_PATH',
@@ -50,7 +50,7 @@ class vrfyCli:
         dirvrfy = parser.add_argument_group('Directory verification', 'Verify files against a known good master copy.'
                                             '\nError indicators:'
                                             '\n\t[+]: Additional files/directories in master that is missing in backup. '
-                                            '\n\t[-]: Vice versa.'
+                                            '\n\t[-]: Files/directories that are missing in master, but included in backup.'
                                             '\n\t[MISMATCH]: Checksums mismatch.')
         dirvrfy.add_argument("-m", "--master", type=pathlib.Path, dest='MASTER_PATH', help="Path to master directory")
         dirvrfy.add_argument("-b", "--backup", type=pathlib.Path, dest='BACKUP_PATH', 
