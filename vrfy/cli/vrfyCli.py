@@ -49,7 +49,7 @@ class vrfyCli:
 
         dirvrfy = parser.add_argument_group('Directory verification', 'Verify files against a known good master copy.'
                                             '\nError indicators:'
-                                            '\n\t[+]: Additional files/directories in master that is missing in backup. '
+                                            '\n\t[+]: Additional files/directories in master that are missing in backup. '
                                             '\n\t[-]: Files/directories that are missing in master, but included in backup.'
                                             '\n\t[MISMATCH]: Checksums mismatch.')
         dirvrfy.add_argument("-m", "--master", type=pathlib.Path, dest='MASTER_PATH', help="Path to master directory")
@@ -92,16 +92,6 @@ class vrfyCli:
             print("Verifying current working directory against checksums:")
             executionResult = self.__walker__(os.getcwd(), os.getcwd(), vf.VerifyFilesAgainstChecksums)
             self.__printOverallResult__(executionResult)
-
-        # cli option: vrfy <<directory>> <<directory>>
-        # elif len(arguments) == 2 and self.os.path.isdir(arguments[0]) and self.os.path.isdir(arguments[1]):
-        #    # only two paths are provided -> first: golden master / second: backup/copy to be verified
-        #    print("Verifying directories:")
-        #    print("Master: " + str(arguments[0]))
-        #    print("Backup: " + str(arguments[1]))
-        #    self.OPTION_RECURSIVE = True
-        #    executionResult = self.__walker__(arguments[0], arguments[1], vf.VerifyFiles)
-        #    self.__printOverallResult__(executionResult)
 
         # cli option: vrfy -m <<directory>> -c <<directory>>
         elif args.MASTER_PATH is not None and args.BACKUP_PATH is not None:

@@ -18,11 +18,7 @@ pip install vrfy --user
  
 ## Usage the CLI
 ### 1. Verifing that two directories are identical
-Verifing that the contents of '/path/of/backup' are identical to those of '/path/of/master'. For example, '/path/of/master' might be a local backup, whereas '/path/of/backup' might be loaded from cloud storage. 
-```bash
-vrfy /path/of/master /path/of/backup
-```
-or
+Verifing that the contents of '/path/of/backup' are identical to those of '/path/of/master'. For example, '/path/of/master' might be a local backup, whereas '/path/of/backup' might be loaded from cloud storage.
 ```bash
 vrfy -m /path/of/master -b /path/of/backup -r
 ```
