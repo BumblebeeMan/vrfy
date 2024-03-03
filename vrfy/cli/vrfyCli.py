@@ -180,10 +180,12 @@ class vrfyCli:
         else:
             if os.path.isdir(pathMaster):
                 print("[+] " + pathMaster, end=" : ", flush=True)
-                resultObject = vrfy.Result(False, pathMaster, additionalMaster=filesM, missingMaster=filesC)
+                #resultObject = vrfy.Result(False, pathMaster, additionalMaster=filesM, missingMaster=filesC)
+                resultObject = func(pathMaster, pathBackup)
             if os.path.isdir(pathBackup):
                 print("[-] " + pathBackup, end=" : ", flush=True)
-                resultObject = vrfy.Result(False, pathBackup, additionalMaster=filesM, missingMaster=filesC)
+                #resultObject = vrfy.Result(False, pathBackup, additionalMaster=filesM, missingMaster=filesC)
+                resultObject = func(pathMaster, pathBackup)
         resultVerify = resultObject.Result
         # ResultList.append(resultObject)
         self.__printResult__(resultObject)

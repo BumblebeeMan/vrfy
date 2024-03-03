@@ -187,16 +187,39 @@ class vrfy:
         Returns:
             vrfy.Result: Results result object of type vrfy.Result.
         """
-        filesMaster = [entryB for entryB in os.listdir(pathMaster) if
-                       not os.path.isdir(os.path.join(pathMaster, entryB))]
-        filesBackup = [entryB for entryB in os.listdir(pathBackup) if
-                       not os.path.isdir(os.path.join(pathBackup, entryB))]
         result = True
         masterHashDict = dict()
         backupHashDict = dict()
         missingItemsInPathBackup = []
         additionalItemsInPathBackup = []
         checksumErrors = []
+
+        if os.path.isdir(pathMaster) and not os.path.isdir(pathBackup):
+            filesMaster = [entryB for entryB in os.listdir(pathMaster) if
+                           not os.path.isdir(os.path.join(pathMaster, entryB))]
+            for file in filesMaster:
+                masterFilePath = os.path.join(pathMaster, file)
+                checksumMaster = self.__calcChecksum__(masterFilePath)
+                masterHashDict[file] = checksumMaster
+            return self.Result(result=False, path=pathMaster, missingMaster=[],
+                               additionalMaster=filesMaster, ChecksumMismatch=[],
+                               masterChecksums=masterHashDict, backupChecksums=dict())
+        if os.path.isdir(pathBackup) and not os.path.isdir(pathMaster):
+            filesBackup = [entryB for entryB in os.listdir(pathBackup) if
+                           not os.path.isdir(os.path.join(pathBackup, entryB))]
+            for file in filesBackup:
+                backupFilePath = os.path.join(pathBackup, file)
+                checksumBackup = self.__calcChecksum__(backupFilePath)
+                backupHashDict[file] = checksumBackup
+            return self.Result(result=False, path=pathMaster, missingMaster=filesBackup,
+                               additionalMaster=[], ChecksumMismatch=[],
+                               masterChecksums=dict(), backupChecksums=backupHashDict)
+
+        filesMaster = [entryB for entryB in os.listdir(pathMaster) if
+                       not os.path.isdir(os.path.join(pathMaster, entryB))]
+        filesBackup = [entryB for entryB in os.listdir(pathBackup) if
+                       not os.path.isdir(os.path.join(pathBackup, entryB))]
+
         # start file verification, when files are included in directory
         if len(filesMaster) > 0:
             # search for missing or additional files in master and backup, and trigger error condition
@@ -228,6 +251,16 @@ class vrfy:
                         # checksum mismatch -> trigger error condition and add file name to list of mismatched files
                         checksumErrors.append(str(fileNameMaster))
                         result = False
+            for missingBackup in missingItemsInPathBackup:
+                masterFilePath = os.path.join(pathMaster, missingBackup)
+                checksumMaster = self.__calcChecksum__(masterFilePath)
+                masterHashDict[missingBackup] = checksumMaster
+
+            for additionalBackup in additionalItemsInPathBackup:
+                backupFilePath = os.path.join(pathBackup, additionalBackup)
+                checksumBackup = self.__calcChecksum__(backupFilePath)
+                backupHashDict[additionalBackup] = checksumBackup
+
         return self.Result(result=result, path=pathMaster, missingMaster=additionalItemsInPathBackup,
                            additionalMaster=missingItemsInPathBackup, ChecksumMismatch=checksumErrors,
                            masterChecksums=masterHashDict, backupChecksums=backupHashDict)
