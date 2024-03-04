@@ -39,7 +39,7 @@ class vrfyCli:
         csvrfy = parser.add_argument_group('Checksum verification', 'Verify files against stored checksums.'
                                             '\nError indicators:'
                                             '\n\t[+]: Additional files in directory that are missing in checksum list.'
-                                            '\n\t[-]: Files that are included in checksum list, but NOT in directory.'
+                                            '\n\t[-]: Files that are included in checksum list, but missing in directory.'
                                             '\n\t[MISMATCH]: Checksums mismatch.')
         mcsvrfy = csvrfy.add_mutually_exclusive_group()  # required=True)
         mcsvrfy.add_argument("-v", "--verify", type=pathlib.Path, dest='VERIFY_PATH',
@@ -49,8 +49,8 @@ class vrfyCli:
 
         dirvrfy = parser.add_argument_group('Directory verification', 'Verify files against a known good master copy.'
                                             '\nError indicators:'
-                                            '\n\t[+]: Additional files/directories in master that are missing in backup. '
-                                            '\n\t[-]: Files/directories that are missing in master, but included in backup.'
+                                            '\n\t[+]: Additional files/directories in backup that are missing in master. '
+                                            '\n\t[-]: Files/directories that are included in master, but missing in backup.'
                                             '\n\t[MISMATCH]: Checksums mismatch.')
         dirvrfy.add_argument("-m", "--master", type=pathlib.Path, dest='MASTER_PATH', help="Path to master directory")
         dirvrfy.add_argument("-b", "--backup", type=pathlib.Path, dest='BACKUP_PATH', 
@@ -179,11 +179,11 @@ class vrfyCli:
                 return False
         else:
             if os.path.isdir(pathMaster):
-                print("[+] " + pathMaster, end=" : ", flush=True)
+                print("[-] " + pathMaster, end=" : ", flush=True)
                 #resultObject = vrfy.Result(False, pathMaster, additionalMaster=filesM, missingMaster=filesC)
                 resultObject = func(pathMaster, pathBackup)
             if os.path.isdir(pathBackup):
-                print("[-] " + pathBackup, end=" : ", flush=True)
+                print("[+] " + pathBackup, end=" : ", flush=True)
                 #resultObject = vrfy.Result(False, pathBackup, additionalMaster=filesM, missingMaster=filesC)
                 resultObject = func(pathMaster, pathBackup)
         resultVerify = resultObject.Result
@@ -208,14 +208,14 @@ class vrfyCli:
             if self.OPTION_PRINT:
                 print("- Master: " + result.MasterChecksums[file])
                 print("- Backup: " + result.BackupChecksums[file])
-        for file in result.AdditionalInMaster:
+        for file in result.AdditionalFiles:
             print("[+] " + str(file))
             if self.OPTION_PRINT:
-                print("- cs: " + result.MasterChecksums[file])
-        for file in result.MissingInMaster:
+                print("- cs: " + result.BackupChecksums[file])
+        for file in result.MissingFiles:
             print("[-] " + str(file))
             if self.OPTION_PRINT:
-                print("- cs: " + result.BackupChecksums[file])
+                print("- cs: " + result.MasterChecksums[file])
 
     def __printOverallResult__(self, res: bool):
         if res:

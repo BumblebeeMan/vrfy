@@ -101,11 +101,11 @@ Result = VerifyFiles("path/to/directory/master", "path/to/directory/backup")
 where
 ```python
 class Result:
-    self.Result: bool               # Determines whether operation was successful (True) or not (False).
-    self.Path: str                  # Path the result object corresponds to. 
-    self.MissingInMaster: list      # List of file names that are missing in master directory, but are included in backup / checksum list.
-    self.AdditionalInMaster: list   # List of file names that are missing in backup directory / checksum list, but are included in master.
-    self.ChecksumMismatch: list     # List of files with mismachting checksums.
-    self.MasterChecksums: dict      # Dictionary of files within master directory and their checksums.
-    self.BackupChecksums: dict      # Dictionary of files within backup directory and their checksums.
+    self.Result: bool            # Determines whether operation was successful (True) or not (False).
+    self.Path: str               # Path the result object corresponds to. 
+    self.MissingFiles: list      # Missing files in (backup) directory that are included in master directory / checksum list.
+    self.AdditionalFiles: list   # Additional files in (backup) directory that are NOT included in master directory / checksum list.
+    self.ChecksumMismatch: list  # List of files with mismachting checksums.
+    self.MasterChecksums: dict   # Dictionary of files within master directory and their checksums.
+    self.BackupChecksums: dict   # Dictionary of files within backup directory and their checksums.
 ```

@@ -5,12 +5,12 @@ import hashlib
 
 class vrfy:
     class Result:
-        def __init__(self, result, path, missingMaster=[], additionalMaster=[], ChecksumMismatch=[],
+        def __init__(self, result, path, missingFiles=[], additionalFiles=[], ChecksumMismatch=[],
                      masterChecksums=dict(), backupChecksums=dict()):
             self.Result = result
             self.Path = path
-            self.MissingInMaster = missingMaster
-            self.AdditionalInMaster = additionalMaster
+            self.MissingFiles = missingFiles
+            self.AdditionalFiles = additionalFiles
             self.ChecksumMismatch = ChecksumMismatch
             self.MasterChecksums = masterChecksums
             self.BackupChecksums = backupChecksums
@@ -87,12 +87,13 @@ class vrfy:
             # calculate has values for additional files
             for file in filesMaster:
                 fileHashDict[file] = self.__calcChecksum__(os.path.join(pathMaster, file))
-            return self.Result(result=False, path=pathMaster, additionalMaster=filesMaster,
+            return self.Result(result=False, path=pathMaster, additionalFiles=filesMaster,
                                masterChecksums=fileHashDict)
 
         if len(filesMaster) > 0:
             # do not try to verify "sums.csv" as it will not be included in "sums.csv"
             if "sums.csv" in filesMaster:
+                fileHashDict["sums.csv"] = self.__calcChecksum__(os.path.join(pathMaster, "sums.csv"))
                 filesMaster.remove("sums.csv")
 
             # read checksum file and get dictionary
@@ -132,8 +133,8 @@ class vrfy:
             for file in missingItemsInSumsCSV:
                 fileHashDict[file] = self.__calcChecksum__(os.path.join(pathMaster, file))
 
-            return self.Result(result=resultVerify, path=pathMaster, missingMaster=additionalItemsInSumsCSV,
-                               additionalMaster=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
+            return self.Result(result=resultVerify, path=pathMaster, missingFiles=additionalItemsInSumsCSV,
+                               additionalFiles=missingItemsInSumsCSV, ChecksumMismatch=checksumErrors,
                                masterChecksums=fileHashDict, backupChecksums=sumsDict)
 
         # return with True, in case no files needed to be verifed
@@ -201,8 +202,8 @@ class vrfy:
                 masterFilePath = os.path.join(pathMaster, file)
                 checksumMaster = self.__calcChecksum__(masterFilePath)
                 masterHashDict[file] = checksumMaster
-            return self.Result(result=False, path=pathMaster, missingMaster=[],
-                               additionalMaster=filesMaster, ChecksumMismatch=[],
+            return self.Result(result=False, path=pathMaster, missingFiles=filesMaster,
+                               additionalFiles=[], ChecksumMismatch=[],
                                masterChecksums=masterHashDict, backupChecksums=dict())
         if os.path.isdir(pathBackup) and not os.path.isdir(pathMaster):
             filesBackup = [entryB for entryB in os.listdir(pathBackup) if
@@ -211,8 +212,8 @@ class vrfy:
                 backupFilePath = os.path.join(pathBackup, file)
                 checksumBackup = self.__calcChecksum__(backupFilePath)
                 backupHashDict[file] = checksumBackup
-            return self.Result(result=False, path=pathMaster, missingMaster=filesBackup,
-                               additionalMaster=[], ChecksumMismatch=[],
+            return self.Result(result=False, path=pathMaster, missingFiles=[],
+                               additionalFiles=filesBackup, ChecksumMismatch=[],
                                masterChecksums=dict(), backupChecksums=backupHashDict)
 
         filesMaster = [entryB for entryB in os.listdir(pathMaster) if
@@ -261,8 +262,8 @@ class vrfy:
                 checksumBackup = self.__calcChecksum__(backupFilePath)
                 backupHashDict[additionalBackup] = checksumBackup
 
-        return self.Result(result=result, path=pathMaster, missingMaster=additionalItemsInPathBackup,
-                           additionalMaster=missingItemsInPathBackup, ChecksumMismatch=checksumErrors,
+        return self.Result(result=result, path=pathMaster, missingFiles=missingItemsInPathBackup,
+                           additionalFiles=additionalItemsInPathBackup, ChecksumMismatch=checksumErrors,
                            masterChecksums=masterHashDict, backupChecksums=backupHashDict)
 
     def __calcChecksum__(self, filePath: str) -> str:
