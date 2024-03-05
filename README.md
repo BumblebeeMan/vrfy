@@ -103,6 +103,7 @@ where
 class Result:
     self.Result: bool            # Determines whether operation was successful (True) or not (False).
     self.Path: str               # Path the result object corresponds to. 
+    self.PathError: bool         # True: Path is a valid directory, False otherwise.
     self.MissingFiles: list      # Missing files in (backup) directory that are included in master directory / checksum list.
     self.AdditionalFiles: list   # Additional files in (backup) directory that are NOT included in master directory / checksum list.
     self.ChecksumMismatch: list  # List of files with mismachting checksums.
