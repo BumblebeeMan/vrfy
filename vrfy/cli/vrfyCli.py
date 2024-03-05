@@ -84,7 +84,7 @@ class vrfyCli:
             print("vrfy version: " + str(vf.GetVersion()))
 
         # cli option: vrfy
-        if len(arguments) == 0:
+        elif len(arguments) == 0:
             # no arguments are provided -> verify checksums of files within current working directory
             self.OPTION_VERIFY_CSV = True
             self.OPTION_RECURSIVE = True

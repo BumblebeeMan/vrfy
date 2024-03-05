@@ -278,8 +278,6 @@ class vrfy:
         additionalItemsInPathBackup = [i for i in filesBackup if i not in filesMaster]
         if len(missingItemsInPathBackup) != 0 or len(additionalItemsInPathBackup) != 0:
             result = False
-        if len(filesMaster) == 0 or len(filesBackup) == 0:
-            result = False
 
         # calculate checksums for additional and missing files
         for missingBackup in missingItemsInPathBackup:
