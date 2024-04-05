@@ -2,7 +2,7 @@
 
 All important changes to vrfy will be documented here.
 
-## [0.4.x]
+## [0.4.0]
 
 ### Added
 - Added command line help menu "vrfy -h".
