@@ -95,7 +95,7 @@ class vrfyCli:
 
         # cli option: vrfy -m <<directory>> -c <<directory>>
         elif args.MASTER_PATH is not None and args.BACKUP_PATH is not None:
-            if os.path.isdir(MASTER_PATH) and os.path.isdir(BACKUP_PATH):
+            if os.path.isdir(args.MASTER_PATH) and os.path.isdir(args.BACKUP_PATH):
                 print("Verifying directories:")
                 print("Master: " + str(args.MASTER_PATH))
                 print("Backup: " + str(args.BACKUP_PATH))
@@ -124,7 +124,7 @@ class vrfyCli:
 
         # cli option: vrfy -c <<directory>>
         elif args.CREATE_PATH is not None:
-            if os.path.isdir(CREATE_PATH):
+            if os.path.isdir(args.CREATE_PATH):
                 # create sums
                 print("Creating checksums for files:")
                 executionResult = self.__walker__(str(args.CREATE_PATH), str(args.CREATE_PATH), vf.WriteChecksumFile)
@@ -134,7 +134,7 @@ class vrfyCli:
 
         # cli option: vrfy -v <<directory>>
         elif args.VERIFY_PATH is not None:
-            if os.path.isdir(VERIFY_PATH):
+            if os.path.isdir(args.VERIFY_PATH):
                 # verify sums
                 print("Verifying files against checksums:")
                 executionResult = self.__walker__(str(args.VERIFY_PATH), str(args.VERIFY_PATH),
