@@ -95,41 +95,53 @@ class vrfyCli:
 
         # cli option: vrfy -m <<directory>> -c <<directory>>
         elif args.MASTER_PATH is not None and args.BACKUP_PATH is not None:
-            print("Verifying directories:")
-            print("Master: " + str(args.MASTER_PATH))
-            print("Backup: " + str(args.BACKUP_PATH))
-            self.OPTION_RECURSIVE = True
-            executionResult = self.__walker__(str(args.MASTER_PATH), str(args.BACKUP_PATH), vf.VerifyFiles)
-            self.__printOverallResult__(executionResult)
+            if os.path.isdir(MASTER_PATH) and os.path.isdir(BACKUP_PATH):
+                print("Verifying directories:")
+                print("Master: " + str(args.MASTER_PATH))
+                print("Backup: " + str(args.BACKUP_PATH))
+                self.OPTION_RECURSIVE = True
+                executionResult = self.__walker__(str(args.MASTER_PATH), str(args.BACKUP_PATH), vf.VerifyFiles)
+                self.__printOverallResult__(executionResult)
+            else:
+                print("ERROR: Unvalid argument " + str(args.MASTER_PATH) + " or " + str(args.BACKUP_PATH))
 
         # cli option: vrfy -f <<file>> -cs <<CHECKSUM>> OR vrfy -p -f <<file>> OR vrfy -p -f <<file>> -cs <<CHECKSUM>>
         elif args.file is not None:
-            if args.checksum is not None:
-                res = vf.VerifyFile(args.file.name, args.checksum)
+            if os.path.isfile(args.file):
+                if args.checksum is not None:
+                    res = vf.VerifyFile(args.file.name, args.checksum)
+                else:
+                    res = vf.VerifyFile(args.file.name, "")
+                executionResult = res.Result
+                path, filename = os.path.split(args.file.name)
+                calcChecksum = res.MasterChecksums[filename]
+                if self.OPTION_PRINT:
+                    print(calcChecksum + "  " + str(filename))
+                else:
+                    self.__printOverallResult__(executionResult)
             else:
-                res = vf.VerifyFile(args.file.name, "")
-            executionResult = res.Result
-            path, filename = os.path.split(args.file.name)
-            calcChecksum = res.MasterChecksums[filename]
-            if self.OPTION_PRINT:
-                print(calcChecksum + "  " + str(filename))
-            else:
-                self.__printOverallResult__(executionResult)
+                print("ERROR: Unvalid argument " + str(args.file))
 
         # cli option: vrfy -c <<directory>>
         elif args.CREATE_PATH is not None:
-            # create sums
-            print("Creating checksums for files:")
-            executionResult = self.__walker__(str(args.CREATE_PATH), str(args.CREATE_PATH), vf.WriteChecksumFile)
-            self.__printOverallResult__(executionResult)
+            if os.path.isdir(CREATE_PATH):
+                # create sums
+                print("Creating checksums for files:")
+                executionResult = self.__walker__(str(args.CREATE_PATH), str(args.CREATE_PATH), vf.WriteChecksumFile)
+                self.__printOverallResult__(executionResult)
+            else:
+                print("ERROR: Unvalid argument " + str(args.CREATE_PATH))
 
         # cli option: vrfy -v <<directory>>
         elif args.VERIFY_PATH is not None:
-            # verify sums
-            print("Verifying files against checksums:")
-            executionResult = self.__walker__(str(args.VERIFY_PATH), str(args.VERIFY_PATH),
-                                              vf.VerifyFilesAgainstChecksums)
-            self.__printOverallResult__(executionResult)
+            if os.path.isdir(VERIFY_PATH):
+                # verify sums
+                print("Verifying files against checksums:")
+                executionResult = self.__walker__(str(args.VERIFY_PATH), str(args.VERIFY_PATH),
+                                                vf.VerifyFilesAgainstChecksums)
+                self.__printOverallResult__(executionResult)
+            else:
+                print("ERROR: Unvalid argument " + str(args.VERIFY_PATH))
 
         else:
             print("No valid argument setting found!")
